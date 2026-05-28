@@ -12,11 +12,11 @@ export function useSerial() {
   // ── disconnect ─────────────────────────────────────────────────────────────
   const disconnect = useCallback(async () => {
     abortRef.current = true;
-    try { await readerRef.current?.cancel(); } catch (_) {}
-    try { await writerRef.current?.close();  } catch (_) {}
+    try { await readerRef.current?.cancel(); } catch { /* ignore */ }
+    try { await writerRef.current?.close();  } catch { /* ignore */ }
     readerRef.current = null;
     writerRef.current = null;
-    try { await portRef.current?.close(); }   catch (_) {}
+    try { await portRef.current?.close(); }   catch { /* ignore */ }
     portRef.current = null;
     setIsConnected(false);
   }, []);
@@ -87,7 +87,7 @@ export function useSerial() {
             if (!trimmed) continue;
             try {
               onMessage(JSON.parse(trimmed));
-            } catch (_) {
+            } catch {
               onError?.({ type: 'parse', message: `Nieczytelna wiadomość: ${trimmed.slice(0, 80)}` });
             }
           }
@@ -100,7 +100,7 @@ export function useSerial() {
           readerRef.current = null;
           writerRef.current = null;
           portRef.current = null;
-          try { await port.close(); } catch (_) {}
+          try { await port.close(); } catch { /* ignore */ }
           setIsConnected(false);
           onError?.({ type: 'read', message: 'Połączenie zostało przerwane przez urządzenie.' });
         }
@@ -117,7 +117,7 @@ export function useSerial() {
       const encoded = new TextEncoder().encode(JSON.stringify(data) + '\n');
       await writer.write(encoded);
       return true;
-    } catch (_) {
+    } catch {
       return false;
     }
   }, []);

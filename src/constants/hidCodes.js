@@ -1,0 +1,111 @@
+export const KEY_TYPE = {
+  STANDARD: 0,
+  MEDIA: 1,
+  MACRO: 2,
+  LAYER: 3,
+  STRING: 4,
+};
+
+export const MEDIA_MAP = {
+  "Vol Up": 1,
+  "Vol Down": 2,
+  Mute: 3,
+  "Play/Pause": 4,
+  "Next Track": 5,
+  "Prev Track": 6,
+  Stop: 7,
+  Calc: 8,
+  Web: 9,
+};
+
+export const MEDIA_MAP_REV = Object.fromEntries(
+  Object.entries(MEDIA_MAP).map(([k, v]) => [v, k]),
+);
+
+export const HID_NAMED = {
+  Enter: 0xb0,
+  Esc: 0xb1,
+  Backspace: 0xb2,
+  Tab: 0xb3,
+  Space: 0x20,
+  Ent: 0xb0,
+  BS: 0xb2,
+  Up: 0xda,
+  Down: 0xd9,
+  Left: 0xd8,
+  Right: 0xd7,
+  F1: 0xc2,
+  F2: 0xc3,
+  F3: 0xc4,
+  F4: 0xc5,
+  F5: 0xc6,
+  F6: 0xc7,
+  F7: 0xc8,
+  F8: 0xc9,
+  F9: 0xca,
+  F10: 0xcb,
+  F11: 0xcc,
+  F12: 0xcd,
+  F13: 0x68,
+  F14: 0x69,
+  F15: 0x6a,
+  F16: 0x6b,
+  F17: 0x6c,
+  F18: 0x6d,
+  F19: 0x6e,
+  F20: 0x6f,
+  F21: 0x70,
+  F22: 0x71,
+  F23: 0x72,
+  F24: 0x73,
+  "+": 0x2b,
+  "-": 0x2d,
+  "*": 0x2a,
+  "/": 0x2f,
+  Del: 0x4c,
+  Ins: 0x49,
+  Home: 0x4a,
+  End: 0x4d,
+  "Page Up": 0x4b,
+  "Page Down": 0x4e,
+  "Print Screen": 0x46,
+  "Scroll Lock": 0x47,
+  Pause: 0x48,
+  "Caps Lock": 0x39,
+  Menu: 0x65,
+  NumLock: 0x53,
+};
+
+export const HID_NAMED_REV = Object.fromEntries(
+  Object.entries(HID_NAMED).map(([k, v]) => [v, k]),
+);
+
+export const MOD_MAP = { Ctrl: 1, Shift: 2, Alt: 4, GUI: 8 };
+
+export const KEY_CATEGORIES = {
+  "Litery & Cyfry": [
+    "A","B","C","D","E","F","G","H","I","J","K","L","M",
+    "N","O","P","Q","R","S","T","U","V","W","X","Y","Z",
+    "1","2","3","4","5","6","7","8","9","0",
+  ],
+  Specjalne: [
+    "Enter", "Esc", "Backspace", "Tab", "Space", "Del", "Ins",
+    "Caps Lock", "Ctrl", "Shift", "Alt", "GUI",
+  ],
+  Nawigacja: [
+    "Up", "Down", "Left", "Right", "Home", "End",
+    "Page Up", "Page Down",
+  ],
+  Funkcyjne: [
+    "F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12",
+    "F13","F14","F15","F16","F17","F18","F19","F20","F21","F22","F23","F24",
+  ],
+  "Media i System": [
+    "Vol Up","Vol Down","Mute","Play/Pause","Next Track","Prev Track",
+    "Stop","Calc","Web",
+  ],
+  Systemowe: [
+    "Print Screen", "Scroll Lock", "Pause", "Menu", "NumLock",
+  ],
+  Warstwy: ["L0","L1","L2","L3","L4"],
+};
