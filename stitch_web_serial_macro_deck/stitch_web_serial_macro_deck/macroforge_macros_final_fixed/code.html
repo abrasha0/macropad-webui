@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MacroForge - Macros</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@400&amp;family=Geist:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary": "#370096",
+                        "on-tertiary-fixed-variant": "#004f58",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary-fixed-variant": "#90003c",
+                        "on-primary-fixed-variant": "#4f00d0",
+                        "primary-fixed-dim": "#cdbdff",
+                        "on-secondary": "#660028",
+                        "primary-fixed": "#e8deff",
+                        "outline-glow": "rgba(124, 77, 255, 0.3)",
+                        "surface": "#131315",
+                        "surface-tint": "#cdbdff",
+                        "surface-container-lowest": "#0e0e10",
+                        "on-secondary-fixed": "#3f0016",
+                        "on-primary-fixed": "#20005f",
+                        "on-secondary-container": "#fff6f6",
+                        "on-error": "#690005",
+                        "tertiary-container": "#007e8d",
+                        "surface-container-high": "#2a2a2c",
+                        "tertiary-fixed-dim": "#00daf3",
+                        "on-background": "#e5e1e4",
+                        "secondary-fixed": "#ffd9df",
+                        "on-primary-container": "#fcf6ff",
+                        "surface-container": "#201f22",
+                        "surface-variant": "#353437",
+                        "primary-container": "#7c4dff",
+                        "background": "#131315",
+                        "terminal-black": "#0e0e10",
+                        "surface-dim": "#131315",
+                        "secondary-container": "#e00161",
+                        "inverse-primary": "#6833ea",
+                        "surface-container-highest": "#353437",
+                        "on-surface-variant": "#cac3d8",
+                        "on-tertiary": "#00363d",
+                        "tertiary": "#00daf3",
+                        "error": "#ffb4ab",
+                        "surface-high": "#2a2a2c",
+                        "secondary-fixed-dim": "#ffb1c0",
+                        "inverse-on-surface": "#313032",
+                        "surface-bright": "#39393b",
+                        "primary": "#cdbdff",
+                        "on-tertiary-fixed": "#001f24",
+                        "inverse-surface": "#e5e1e4",
+                        "outline": "#948ea1",
+                        "surface-container-low": "#1b1b1d",
+                        "secondary": "#ffb1c0",
+                        "tertiary-fixed": "#9cf0ff",
+                        "on-surface": "#e5e1e4",
+                        "outline-variant": "#494455",
+                        "on-tertiary-container": "#ebfcff",
+                        "error-container": "#93000a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "40px",
+                        "gutter": "16px",
+                        "unit": "8px",
+                        "container-padding": "24px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Inter", "sans-serif"],
+                        "headline-md": ["Inter", "sans-serif"],
+                        "code-sm": ["JetBrains Mono", "monospace"],
+                        "body-lg": ["Inter", "sans-serif"],
+                        "label-md": ["Geist", "sans-serif"],
+                        "body-md": ["Inter", "sans-serif"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "code-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        /* Custom scrollbar for terminal and lists */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #494455;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #7c4dff;
+        }
+        
+        /* Subtle pulse for connected state */
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; box-shadow: 0 0 10px rgba(0, 218, 243, 0.4); }
+            50% { opacity: 0.7; box-shadow: 0 0 20px rgba(0, 218, 243, 0.8); }
+        }
+        .connected-dot {
+            animation: pulse-glow 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface font-body-md h-screen w-full overflow-hidden flex selection:bg-primary-container selection:text-on-primary-container">
+<!-- SideNavBar (Shared Component) -->
+<aside class="w-64 h-screen fixed left-0 top-0 bg-surface-container border-r border-outline-variant/30 backdrop-blur-md shadow-md shadow-outline-glow/20 flex flex-col py-margin-desktop z-20">
+<!-- Header -->
+<div class="px-container-padding mb-8 flex flex-col gap-1 cursor-pointer hover:opacity-80 transition-opacity">
+<h1 class="font-headline-md text-headline-md font-bold text-primary tracking-tight">MacroForge</h1>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary connected-dot"></span>
+<span class="font-label-md text-label-md text-tertiary">Connected · v2.4</span>
+</div>
+</div>
+<!-- Navigation Tabs -->
+<nav class="flex-1 flex flex-col gap-2 px-container-padding">
+<!-- Inactive Tab -->
+<a class="flex items-center gap-unit px-container-padding py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 transition-all duration-200 rounded-full active:scale-95 ease-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined text-[20px]">grid_view</span>
+                Layout
+            </a>
+<!-- Active Tab -->
+<a class="flex items-center gap-unit px-container-padding py-3 bg-surface-container-high text-primary rounded-full hover:bg-surface-variant/50 transition-all duration-200 active:scale-95 ease-out shadow-[0_0_15px_rgba(124,77,255,0.15)] font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined icon-fill text-[20px]">keyboard_command_key</span>
+                Macros
+            </a>
+<!-- Inactive Tab -->
+<a class="flex items-center gap-unit px-container-padding py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 transition-all duration-200 rounded-full active:scale-95 ease-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+                System
+            </a>
+</nav>
+<!-- Footer Actions -->
+<div class="px-container-padding flex flex-col gap-4 mt-auto">
+<a class="flex items-center gap-unit px-container-padding py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant/50 transition-all duration-200 rounded-full active:scale-95 ease-out font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined text-[20px]">update</span>
+                Update
+            </a>
+<!-- Contextualized CTA based on prompt 'Connected status' -->
+<button class="w-full py-3 px-4 rounded-full bg-surface-variant border border-outline-variant/50 text-tertiary font-label-md text-label-md flex items-center justify-center gap-2 transition-all duration-200 shadow-[0_0_10px_rgba(0,218,243,0.1)] cursor-default">
+<span class="material-symbols-outlined text-[18px]">usb</span>
+                Device Synced
+            </button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 flex-1 flex flex-col h-screen w-[calc(100%-16rem)] relative">
+<!-- TopAppBar (Shared Component) -->
+<header class="h-16 flex justify-end items-center px-margin-desktop w-full bg-surface-container-lowest/80 backdrop-blur-md z-10 sticky top-0 border-b border-transparent">
+<div class="flex items-center gap-4 text-on-surface-variant">
+<button class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-surface-variant hover:text-primary transition-colors cursor-pointer hover:opacity-80">
+<span class="material-symbols-outlined text-[20px]">settings_input_component</span>
+</button>
+<button class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-surface-variant hover:text-primary transition-colors cursor-pointer hover:opacity-80">
+<span class="material-symbols-outlined text-[20px]">terminal</span>
+</button>
+<button class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-surface-variant hover:text-primary transition-colors cursor-pointer hover:opacity-80">
+<span class="material-symbols-outlined text-[20px]">help</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center border border-outline-variant/50 ml-2" title="Status Indicator">
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary connected-dot"></span>
+</div>
+</div>
+</header>
+<!-- Split Pane Workspace -->
+<div class="flex-1 flex flex-col gap-gutter px-margin-desktop pb-margin-desktop overflow-hidden">
+<!-- TOP PANE (55%): Macro Management & Visual Editor -->
+<div class="flex-[55] flex gap-gutter min-h-0">
+<!-- Left: Macro List -->
+<div class="w-1/3 flex flex-col bg-surface-container border border-outline-variant/30 rounded-[1.5rem] overflow-hidden shadow-lg shadow-black/20">
+<!-- Header -->
+<div class="p-4 border-b border-outline-variant/20 flex justify-between items-center bg-surface-container-highest/30">
+<h2 class="font-headline-md text-[18px] text-on-surface font-semibold">Library</h2>
+<button class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center hover:bg-primary transition-colors shadow-[0_0_10px_rgba(124,77,255,0.4)] hover:scale-105 active:scale-95">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+<!-- List -->
+<div class="flex-1 overflow-y-auto p-2 flex flex-col gap-1">
+<!-- Active Item -->
+<button class="w-full flex items-center justify-between p-3 rounded-xl bg-surface-variant/80 border border-outline-variant text-primary text-left group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[20px] text-primary">mic_off</span>
+<span class="font-body-md text-body-md font-medium text-on-surface">Mute Discord</span>
+</div>
+<span class="font-label-md text-[10px] text-primary bg-primary/10 px-2 py-1 rounded-full border border-primary/20">Active</span>
+</button>
+<!-- Inactive Items -->
+<button class="w-full flex items-center gap-3 p-3 rounded-xl bg-transparent hover:bg-surface-variant/50 text-on-surface-variant hover:text-on-surface text-left transition-colors border border-transparent">
+<span class="material-symbols-outlined text-[20px]">content_copy</span>
+<span class="font-body-md text-body-md">Copy Selection</span>
+</button>
+<button class="w-full flex items-center gap-3 p-3 rounded-xl bg-transparent hover:bg-surface-variant/50 text-on-surface-variant hover:text-on-surface text-left transition-colors border border-transparent">
+<span class="material-symbols-outlined text-[20px]">code_blocks</span>
+<span class="font-body-md text-body-md">Enter Snippet</span>
+</button>
+<button class="w-full flex items-center gap-3 p-3 rounded-xl bg-transparent hover:bg-surface-variant/50 text-on-surface-variant hover:text-on-surface text-left transition-colors border border-transparent">
+<span class="material-symbols-outlined text-[20px]">open_in_new</span>
+<span class="font-body-md text-body-md">Launch IDE</span>
+</button>
+</div>
+</div>
+<!-- Right: Visual Macro Editor -->
+<div class="w-2/3 flex flex-col bg-surface-container border border-outline-variant/30 rounded-[1.5rem] overflow-hidden shadow-lg shadow-black/20">
+<!-- Editor Header -->
+<div class="p-5 border-b border-outline-variant/20 flex justify-between items-center bg-surface-container-highest/30">
+<div>
+<h2 class="font-headline-md text-headline-md text-primary font-bold">Mute Discord</h2>
+<p class="font-label-md text-label-md text-on-surface-variant mt-1">Trigger: <span class="text-on-surface bg-surface-variant px-2 py-0.5 rounded font-code-sm">FN + F4</span></p>
+</div>
+<div class="flex gap-2">
+<button class="px-4 py-2 rounded-full bg-surface-variant text-on-surface-variant hover:text-on-surface font-label-md text-label-md flex items-center gap-2 transition-colors border border-outline-variant/50 hover:border-outline-variant">
+<span class="material-symbols-outlined text-[18px]">play_arrow</span>
+                                Test
+                            </button>
+<button class="px-4 py-2 rounded-full bg-primary-container text-on-primary-container font-label-md text-label-md flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(124,77,255,0.3)]">
+<span class="material-symbols-outlined text-[18px]">save</span>
+                                Save
+                            </button>
+</div>
+</div>
+<!-- Sequence Canvas -->
+<div class="flex-1 p-6 overflow-y-auto bg-surface-dim/50 relative">
+<!-- Decorative background grid -->
+<div class="absolute inset-0 pointer-events-none opacity-5" style="background-image: radial-gradient(#cac3d8 1px, transparent 1px); background-size: 24px 24px;"></div>
+<div class="relative z-10 flex flex-wrap items-center gap-4">
+<!-- Key Block -->
+<div class="group flex flex-col items-center">
+<div class="w-16 h-16 bg-surface-variant border-2 border-outline-variant rounded-full flex items-center justify-center shadow-inner hover:border-primary transition-colors cursor-pointer relative overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<span class="font-code-sm text-code-sm text-on-surface font-semibold">L_CTRL</span>
+</div>
+<span class="font-label-md text-[10px] text-on-surface-variant mt-2">Key Down</span>
+</div>
+<!-- Connection / Delay -->
+<div class="flex items-center gap-2 text-secondary">
+<span class="material-symbols-outlined text-[16px] opacity-70">arrow_forward</span>
+<div class="bg-secondary/10 border border-secondary/30 px-2 py-1 rounded-full flex items-center gap-1 cursor-pointer hover:bg-secondary/20 transition-colors">
+<span class="material-symbols-outlined text-[12px]">timer</span>
+<span class="font-code-sm text-[11px]">50ms</span>
+</div>
+<span class="material-symbols-outlined text-[16px] opacity-70">arrow_forward</span>
+</div>
+<!-- Key Block -->
+<div class="group flex flex-col items-center">
+<div class="w-16 h-16 bg-surface-variant border-2 border-outline-variant rounded-full flex items-center justify-center shadow-inner hover:border-primary transition-colors cursor-pointer relative overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<span class="font-code-sm text-code-sm text-on-surface font-semibold">L_SHIFT</span>
+</div>
+<span class="font-label-md text-[10px] text-on-surface-variant mt-2">Key Down</span>
+</div>
+<!-- Connection / Delay -->
+<div class="flex items-center gap-2 text-secondary">
+<span class="material-symbols-outlined text-[16px] opacity-70">arrow_forward</span>
+<div class="bg-secondary/10 border border-secondary/30 px-2 py-1 rounded-full flex items-center gap-1 cursor-pointer hover:bg-secondary/20 transition-colors">
+<span class="material-symbols-outlined text-[12px]">timer</span>
+<span class="font-code-sm text-[11px]">50ms</span>
+</div>
+<span class="material-symbols-outlined text-[16px] opacity-70">arrow_forward</span>
+</div>
+<!-- Key Block -->
+<div class="group flex flex-col items-center">
+<div class="w-16 h-16 bg-surface-variant border-2 border-outline-variant rounded-full flex items-center justify-center shadow-inner hover:border-primary transition-colors cursor-pointer relative overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<span class="font-code-sm text-code-sm text-on-surface font-semibold">M</span>
+</div>
+<span class="font-label-md text-[10px] text-on-surface-variant mt-2">Click</span>
+</div>
+<!-- Connection / End -->
+<div class="flex items-center gap-2 text-outline-variant pl-2">
+<span class="material-symbols-outlined text-[20px]">add_circle</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- BOTTOM PANE (45%): Serial Terminal Log -->
+<div class="flex-[45] bg-terminal-black border border-outline-variant/30 rounded-[1.5rem] flex flex-col overflow-hidden shadow-inner relative group">
+<!-- Terminal Header -->
+<div class="px-4 py-2 border-b border-surface-variant/50 flex justify-between items-center bg-surface-container-lowest sticky top-0 z-10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[16px] text-outline">terminal</span>
+<h3 class="font-label-md text-label-md text-outline tracking-wider">SERIAL LOG [COM3]</h3>
+</div>
+<div class="flex gap-2">
+<button class="w-6 h-6 rounded hover:bg-surface-variant flex items-center justify-center text-outline hover:text-on-surface transition-colors" title="Clear Log">
+<span class="material-symbols-outlined text-[14px]">block</span>
+</button>
+<button class="w-6 h-6 rounded hover:bg-surface-variant flex items-center justify-center text-outline hover:text-on-surface transition-colors" title="Auto-scroll">
+<span class="material-symbols-outlined text-[14px]">arrow_downward</span>
+</button>
+</div>
+</div>
+<!-- Terminal Content -->
+<div class="flex-1 p-4 overflow-y-auto font-code-sm text-code-sm leading-relaxed whitespace-pre-wrap select-text">
+<div class="text-tertiary opacity-80 mb-2">MacroForge Kernel v2.4 initialized. Listening on COM3...</div>
+<div class="flex gap-2 hover:bg-surface-variant/20 px-1 -mx-1 rounded"><span class="text-outline w-20 flex-shrink-0">[10:42:01]</span><span class="text-tertiary w-12 flex-shrink-0">[SYS]</span><span class="text-on-surface-variant">Device handshake successful. UID: 0x8F9A.</span></div>
+<div class="flex gap-2 hover:bg-surface-variant/20 px-1 -mx-1 rounded"><span class="text-outline w-20 flex-shrink-0">[10:42:05]</span><span class="text-primary w-12 flex-shrink-0">[RX]</span><span class="text-on-surface">Key down raw: 0x11 (L_CTRL)</span></div>
+<div class="flex gap-2 hover:bg-surface-variant/20 px-1 -mx-1 rounded"><span class="text-outline w-20 flex-shrink-0">[10:42:05]</span><span class="text-primary w-12 flex-shrink-0">[RX]</span><span class="text-on-surface">Key down raw: 0x10 (L_SHIFT)</span></div>
+<div class="flex gap-2 hover:bg-surface-variant/20 px-1 -mx-1 rounded"><span class="text-outline w-20 flex-shrink-0">[10:42:05]</span><span class="text-primary w-12 flex-shrink-0">[RX]</span><span class="text-on-surface">Key down raw: 0x4D (M)</span></div>
+<div class="flex gap-2 hover:bg-surface-variant/20 px-1 -mx-1 rounded"><span class="text-outline w-20 flex-shrink-0">[10:42:05]</span><span class="text-secondary w-12 flex-shrink-0">[EVT]</span><span class="text-secondary-fixed">Macro trigger matched: ID 0x01 (Mute Discord)</span></div>
+<div class="flex gap-2 hover:bg-surface-variant/20 px-1 -mx-1 rounded"><span class="text-outline w-20 flex-shrink-0">[10:42:05]</span><span class="text-tertiary w-12 flex-shrink-0">[SYS]</span><span class="text-on-surface-variant">Executing sequence block 1/5...</span></div>
+<div class="flex gap-2 hover:bg-surface-variant/20 px-1 -mx-1 rounded"><span class="text-outline w-20 flex-shrink-0">[10:42:05]</span><span class="text-tertiary w-12 flex-shrink-0">[SYS]</span><span class="text-on-surface-variant">Executing sequence block 2/5 (delay 50ms)...</span></div>
+<div class="flex gap-2 hover:bg-surface-variant/20 px-1 -mx-1 rounded"><span class="text-outline w-20 flex-shrink-0">[10:42:05]</span><span class="text-tertiary w-12 flex-shrink-0">[SYS]</span><span class="text-on-surface-variant">Executing sequence block 3/5...</span></div>
+<div class="flex gap-2 hover:bg-surface-variant/20 px-1 -mx-1 rounded"><span class="text-outline w-20 flex-shrink-0">[10:42:05]</span><span class="text-secondary w-12 flex-shrink-0">[EVT]</span><span class="text-secondary-fixed">Sequence complete.</span></div>
+<!-- Blinking cursor -->
+<div class="flex gap-2 mt-1 px-1"><span class="text-outline w-20 flex-shrink-0"></span><span class="w-2 h-4 bg-primary animate-pulse inline-block mt-1"></span></div>
+</div>
+</div>
+</div>
+</main>
+</body></html>
