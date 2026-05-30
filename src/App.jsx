@@ -3,7 +3,7 @@ import { useSerial } from "./hooks/useSerial";
 import {
   Cpu, Save, Link, Unlink, Settings2, Terminal, X,
   AlertCircle, CheckCircle, Info, AlertTriangle,
-  Download, Upload, RotateCcw,
+  Download, Upload, RotateCcw, Play,
 } from "lucide-react";
 import { MEDIA_MAP, KEY_CATEGORIES } from "./constants/hidCodes.js";
 import { DEFAULT_LAYERS, DEFAULT_MACROS, DEFAULT_STRINGS } from "./constants/defaults.js";
@@ -306,6 +306,60 @@ function EncoderEditorModal({ activeEncoderAction, layerName, currentBinding, on
   );
 }
 
+// ─── Macro Manager Modal ─────────────────────────────────────────────────────
+function MacroManagerModal({ macros, onRun, onRefresh, onSave, onClose, isConnected }) {
+  return (
+    <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-4 z-50" onClick={onClose}>
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-2xl w-full shadow-2xl flex flex-col max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+        <div className="p-6 border-b border-slate-800 flex justify-between items-center">
+          <h2 className="text-lg font-bold flex items-center gap-2"><Cpu size={20} className="text-blue-500" /> Zarządzanie Makrami</h2>
+          <button onClick={onClose} className="text-slate-600 hover:text-slate-300"><X size={18} /></button>
+        </div>
+        <div className="p-6 flex-1 overflow-y-auto">
+          <div className="flex gap-2 mb-6">
+            <button onClick={onRefresh} disabled={!isConnected}
+              className="flex items-center gap-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-slate-300 rounded-xl text-xs font-medium transition-all border border-slate-700">
+              <RotateCcw size={14} /> Odśwież makra
+            </button>
+            <button onClick={onSave} disabled={!isConnected}
+              className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl text-xs font-medium transition-all">
+              <Save size={14} /> Zapisz makra
+            </button>
+          </div>
+
+          {macros.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-sm text-slate-500">Brak zdefiniowanych makr</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {macros.map((m, i) => (
+                <div key={i} className="bg-slate-950 border border-slate-800 rounded-2xl p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-semibold text-slate-200">{m.name || `Makro ${i}`}</span>
+                    <span className="text-xs text-slate-500">{m.steps?.length || 0} kroków</span>
+                  </div>
+                  {m.steps?.length > 0 && (
+                    <div className="text-xs text-slate-500 font-mono truncate mb-3">
+                      {m.steps.map((s, si) => (
+                        <span key={si}>{si > 0 && ", "}kc=0x{(s.keycode ?? 0).toString(16)} d={s.delay ?? 0}ms</span>
+                      ))}
+                    </div>
+                  )}
+                  <button onClick={() => onRun(i)} disabled={!isConnected}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg text-xs font-medium transition-all">
+                    <Play size={12} /> Uruchom
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Macro Progress Bar ───────────────────────────────────────────────────────
 function MacroProgressBar({ progress }) {
   if (!progress) return null;
@@ -333,7 +387,7 @@ function EncoderWheel({ encoder, onEdit, onAnim, animRotation, animGlow, macros,
 
   const leftLabel = getKeyDisplayString(encoder?.left, macros, strings);
   const rightLabel = getKeyDisplayString(encoder?.right, macros, strings);
-  const pressLabel = getKeyDisplayString(encoder?.press, macros, strings);
+  const pressLabel = getKeyDisplayString(encoder?.button, macros, strings);
 
   const cx = 100, cy = 120, outerR = 55, innerR = 24, glow = animGlow;
 
@@ -407,7 +461,7 @@ function EncoderWheel({ encoder, onEdit, onAnim, animRotation, animGlow, macros,
       </g>
 
       {/* Center press button */}
-      <g onClick={() => handleClick('press')} className="cursor-pointer">
+      <g onClick={() => handleClick('button')} className="cursor-pointer">
         {/* Invisible hit area */}
         <circle cx={cx} cy={cy} r={innerR + 10} fill="transparent" />
         {/* Glow ring */}
@@ -449,6 +503,7 @@ export default function App() {
   const [toasts, setToasts] = useState([]);
   const [serialLogs, setSerialLogs] = useState([]);
   const [showMonitor, setShowMonitor] = useState(false);
+  const [showMacroManager, setShowMacroManager] = useState(false);
   const [configLoaded, setConfigLoaded] = useState(false);
   const [macroProgress, setMacroProgress] = useState(null);
   const [editingLayerName, setEditingLayerName] = useState(null);
@@ -496,10 +551,11 @@ export default function App() {
     switch (msg.cmd) {
       case "config": {
         const rawLayers = msg.data?.layers;
+        const rawEncoder = msg.data?.encoder;
         const rawMacros = msg.data?.macros;
         const rawStrings = msg.data?.strings;
         if (Array.isArray(rawLayers) && rawLayers.length > 0) {
-          setLayers((prev) => deviceLayersToUI(rawLayers, prev, macrosRef.current, stringsRef.current));
+          setLayers((prev) => deviceLayersToUI(rawLayers, rawEncoder, prev, macrosRef.current, stringsRef.current));
           if (Array.isArray(rawMacros)) {
             setMacros(macroCodeToSteps(rawMacros));
           }
@@ -516,13 +572,9 @@ export default function App() {
         }
         break;
       }
-      case "encoder": {
-        if (msg.direction) fireEncoder(msg.direction);
-        break;
-      }
       case "key_state": {
         if (msg.row >= 4) {
-          const dir = msg.col === 0 ? 'left' : msg.col === 1 ? 'right' : 'press';
+          const dir = msg.col === 0 ? 'left' : msg.col === 1 ? 'right' : 'button';
           fireEncoder(dir);
           break;
         }
@@ -533,17 +585,6 @@ export default function App() {
           else delete next[keyId];
           return next;
         });
-        break;
-      }
-      case "key_pressed": {
-        if (msg.row >= 4) {
-          const dir = msg.col === 0 ? 'left' : msg.col === 1 ? 'right' : 'press';
-          fireEncoder(dir);
-          break;
-        }
-        const keyId = `${msg.row}-${msg.col}`;
-        setActiveKeysMap((prev) => ({ ...prev, [keyId]: true }));
-        setTimeout(() => { setActiveKeysMap((prev) => { const n = { ...prev }; delete n[keyId]; return n; }); }, 200);
         break;
       }
       case "layer_change": {
@@ -569,6 +610,7 @@ export default function App() {
         if (Array.isArray(msg.data)) {
           setMacros(macroCodeToSteps(msg.data));
           addLog("Załadowano makra z urządzenia", "info");
+          addToast("Makra załadowane z urządzenia", "success");
         }
         if (Array.isArray(msg.strings)) {
           setStrings(msg.strings);
@@ -618,6 +660,7 @@ export default function App() {
     const t = setTimeout(async () => {
       await send({ cmd: "get_config" });
       await send({ cmd: "get_layer" });
+      await send({ cmd: "get_macros" });
     }, 600);
     return () => clearTimeout(t);
   }, [isConnected]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -625,16 +668,47 @@ export default function App() {
   // ── Config save ──────────────────────────────────────────────────────────
   const handleSave = useCallback(async () => {
     if (!isConnected) return;
-    const deviceLayers = uiLayersToDevice(layersRef.current);
+    const { layers: deviceLayers, encoder: deviceEncoder } = uiLayersToDevice(layersRef.current);
     const configData = {
-      layers: deviceLayers.map(l => l.keys),
-      encoder: deviceLayers.map(l => l.encoder),
+      layers: deviceLayers,
+      encoder: deviceEncoder,
       macros: stepsToDeviceCode(macrosRef.current),
       strings: stringsRef.current,
     };
     const ok = await send({ cmd: "set_config", data: configData });
     if (!ok) addToast("Nie udało się wysłać konfiguracji", "error");
     else addLog("Wysłano konfigurację do urządzenia...", "info");
+  }, [isConnected, send, addToast, addLog]);
+
+  // ── Macro management ─────────────────────────────────────────────────────
+  const handleRunMacro = useCallback(async (index) => {
+    if (!isConnected) return;
+    const ok = await send({ cmd: "run_macro", index });
+    if (!ok) addToast("Nie udało się uruchomić makra", "error");
+    else addLog(`Wysłano run_macro #${index}`, "info");
+  }, [isConnected, send, addToast, addLog]);
+
+  const handleFetchMacros = useCallback(async () => {
+    if (!isConnected) return;
+    const ok = await send({ cmd: "get_macros" });
+    if (!ok) addToast("Nie udało się pobrać makr", "error");
+    else {
+      addLog("Pobieranie makr...", "info");
+      addToast("Pobieranie makr...", "info");
+    }
+  }, [isConnected, send, addToast, addLog]);
+
+  const handleSaveMacros = useCallback(async () => {
+    if (!isConnected) return;
+    const ok = await send({
+      cmd: "set_macros",
+      data: {
+        macros: stepsToDeviceCode(macrosRef.current),
+        strings: stringsRef.current,
+      },
+    });
+    if (!ok) addToast("Nie udało się zapisać makr", "error");
+    else addLog("Wysłano set_macros", "info");
   }, [isConnected, send, addToast, addLog]);
 
   // ── Key editing ──────────────────────────────────────────────────────────
@@ -674,10 +748,10 @@ export default function App() {
 
   // ── Import/Export/Reset ──────────────────────────────────────────────────
   const handleExport = useCallback(() => {
-    const deviceLayers = uiLayersToDevice(layersRef.current);
+    const { layers: deviceLayers, encoder: deviceEncoder } = uiLayersToDevice(layersRef.current);
     const config = {
-      layers: deviceLayers.map(l => l.keys),
-      encoder: deviceLayers.map(l => l.encoder),
+      layers: deviceLayers,
+      encoder: deviceEncoder,
       macros: stepsToDeviceCode(macrosRef.current),
       strings: stringsRef.current,
       _layerNames: layersRef.current.map(l => l.name),
@@ -708,12 +782,8 @@ export default function App() {
             addToast("Nieprawidłowy plik konfiguracji", "error");
             return;
           }
-          const rawLayers = data.layers.map((keys, i) => ({
-            keys,
-            encoder: data.encoder?.[i] || { left: 0, right: 0, press: 0 },
-          }));
           const names = data._layerNames || DEFAULT_LAYERS.map(l => l.name);
-          const newLayers = deviceLayersToUI(rawLayers, layersRef.current, data.macros || [], data.strings || []);
+          const newLayers = deviceLayersToUI(data.layers, data.encoder, layersRef.current, data.macros || [], data.strings || []);
           newLayers.forEach((l, i) => { l.name = names[i] || `Layer ${i}`; });
           setLayers(newLayers);
           if (Array.isArray(data.macros)) setMacros(macroCodeToSteps(data.macros));
@@ -765,6 +835,10 @@ export default function App() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <button onClick={() => setShowMacroManager(true)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs transition-all border border-slate-700 text-slate-500 hover:text-slate-300">
+              <Terminal size={13} /> Makra
+            </button>
             <button onClick={() => setShowMonitor((v) => !v)}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs transition-all border ${
                 showMonitor ? "bg-slate-800 border-slate-600 text-slate-200" : "border-slate-700 text-slate-500 hover:text-slate-300"
@@ -915,6 +989,18 @@ export default function App() {
           onClose={() => setActiveEncoderAction(null)}
           macros={macros} onAddMacro={handleAddMacro}
           strings={strings} onAddString={handleAddString}
+        />
+      )}
+
+      {/* Macro manager modal */}
+      {showMacroManager && (
+        <MacroManagerModal
+          macros={macros}
+          onRun={handleRunMacro}
+          onRefresh={handleFetchMacros}
+          onSave={handleSaveMacros}
+          onClose={() => setShowMacroManager(false)}
+          isConnected={isConnected}
         />
       )}
     </div>

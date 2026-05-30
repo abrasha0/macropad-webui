@@ -104,26 +104,26 @@ function keycodeToUiString(code, macros, strings) {
   return str;
 }
 
-export function deviceLayersToUI(rawLayers, uiLayers, macros, strings) {
+export function deviceLayersToUI(rawLayers, rawEncoder, uiLayers, macros, strings) {
   return rawLayers.map((rawLayer, li) => {
     const existing = uiLayers[li];
     const name = existing?.name ?? `Layer ${li}`;
 
-    let keys = Array.isArray(rawLayer.keys)
-      ? rawLayer.keys.map((row) =>
+    let keys = Array.isArray(rawLayer) && Array.isArray(rawLayer[0])
+      ? rawLayer.map((row) =>
           Array.isArray(row)
             ? row.map((cell) => keycodeToUiString(cell, macros, strings))
             : Array(4).fill(""),
         )
       : Array(4).fill(null).map(() => Array(4).fill(""));
 
-    let encoder = { left: "", right: "", press: "" };
+    let encoder = { left: "", right: "", button: "" };
 
-    if (rawLayer.encoder) {
-      const enc = rawLayer.encoder;
+    const enc = rawEncoder?.[li];
+    if (enc) {
       encoder.left = enc.left != null ? keycodeToUiString(enc.left, macros, strings) : "";
       encoder.right = enc.right != null ? keycodeToUiString(enc.right, macros, strings) : "";
-      encoder.press = enc.press != null ? keycodeToUiString(enc.press, macros, strings) : "";
+      encoder.button = enc.button != null ? keycodeToUiString(enc.button, macros, strings) : "";
     }
 
     return { name, keys, encoder };
@@ -131,16 +131,18 @@ export function deviceLayersToUI(rawLayers, uiLayers, macros, strings) {
 }
 
 export function uiLayersToDevice(uiLayers) {
-  return uiLayers.map((layer) => ({
-    keys: layer.keys.map((row) =>
-      row.map((cell) => uiCellToKeycode(cell)),
+  return {
+    layers: uiLayers.map((layer) =>
+      layer.keys.map((row) =>
+        row.map((cell) => uiCellToKeycode(cell)),
+      ),
     ),
-    encoder: {
+    encoder: uiLayers.map((layer) => ({
       left: layer.encoder?.left != null ? uiCellToKeycode(layer.encoder.left) : 0,
       right: layer.encoder?.right != null ? uiCellToKeycode(layer.encoder.right) : 0,
-      press: layer.encoder?.press != null ? uiCellToKeycode(layer.encoder.press) : 0,
-    },
-  }));
+      button: layer.encoder?.button != null ? uiCellToKeycode(layer.encoder.button) : 0,
+    })),
+  };
 }
 
 export function getKeyDisplayString(cell, macros, strings) {
