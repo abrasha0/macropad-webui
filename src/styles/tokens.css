@@ -1,0 +1,122 @@
+@import "tailwindcss";
+
+@theme {
+  --font-ui: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 13px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+
+  --fw-normal: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 10px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+}
+
+:root {
+  --bg-app: #0D0F0C;
+  --bg-sidebar: #111410;
+  --bg-surface: #181B15;
+  --bg-surface-2: #1F231B;
+  --bg-input: #141714;
+
+  --border: #2A2F26;
+  --border-subtle: #1E221A;
+
+  --accent: #C8FF00;
+  --accent-dim: #8FAF00;
+  --accent-glow: rgba(200, 255, 0, 0.15);
+
+  --text-primary: #E8EDE4;
+  --text-secondary: #7A8570;
+  --text-muted: #4A5045;
+  --text-accent: #C8FF00;
+  --text-code: #A8D080;
+
+  --status-connected: #4ADE80;
+  --status-disconnected: #F87171;
+  --danger: #F87171;
+  --danger-bg: rgba(248, 113, 113, 0.10);
+  --warning: #FACC15;
+
+  --log-system: #60A5FA;
+  --log-device: #4ADE80;
+  --log-input: #F87171;
+  --log-ts: #4A5045;
+
+  --action-keystroke: #EC4899;
+  --action-delay: #F59E0B;
+  --action-media: #60A5FA;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 10px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+
+  --shadow-key: 0 2px 8px rgba(0,0,0,0.5);
+  --shadow-panel: 0 0 0 1px var(--border);
+  --shadow-accent: 0 0 12px var(--accent-glow);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  background: var(--bg-app);
+  color: var(--text-primary);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+input, textarea, select, button {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}

@@ -5,22 +5,22 @@ let _toastId = 0;
 
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
-  const timersRef = useRef({});
+  const timers = useRef({});
 
   const addToast = useCallback((message, level = "info", duration = 4500) => {
     const id = ++_toastId;
     setToasts((prev) => [...prev, { id, message, level }]);
     const timer = setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
-      delete timersRef.current[id];
+      delete timers.current[id];
     }, duration);
-    timersRef.current[id] = timer;
+    timers.current[id] = timer;
     return id;
   }, []);
 
   const dismissToast = useCallback((id) => {
-    clearTimeout(timersRef.current[id]);
-    delete timersRef.current[id];
+    clearTimeout(timers.current[id]);
+    delete timers.current[id];
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 

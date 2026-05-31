@@ -11,89 +11,102 @@ export function DeviceProvider({ children }) {
   const [configLoaded, setConfigLoaded] = useState(false);
   const [serialLogs, setSerialLogs] = useState([]);
   const [deviceInfo, setDeviceInfo] = useState(null);
+  const [activeKeysMap, setActiveKeysMap] = useState({});
 
-  const domainHandlerRef = useRef(null);
-  const setDomainHandler = useCallback((handler) => {
-    domainHandlerRef.current = handler;
-  }, []);
+  const domainHandler = useRef(null);
+  const setDomainHandler = useCallback((fn) => { domainHandler.current = fn; }, []);
 
   const addLog = useCallback((message, level = "info") => {
     const now = new Date();
-    const time = now.toTimeString().slice(0, 8) + "." + String(now.getMilliseconds()).padStart(3, "0");
+    const ms = String(now.getMilliseconds()).padStart(3, "0");
+    const time = now.toTimeString().slice(0, 8) + "." + ms;
     setSerialLogs((prev) => [...prev.slice(-500), { message, level, time }]);
   }, []);
 
-  const clearLogs = useCallback(() => {
-    setSerialLogs([]);
+  const clearLogs = useCallback(() => setSerialLogs([]), []);
+
+  const pressKey = useCallback((rIdx, cIdx) => {
+    const id = `${rIdx}-${cIdx}`;
+    setActiveKeysMap((prev) => ({ ...prev, [id]: true }));
+    setTimeout(() => setActiveKeysMap((prev) => { const n = { ...prev }; delete n[id]; return n; }), 250);
   }, []);
 
-  const handleSerialMessage = useCallback(
-    (msg) => {
+  const fireEncoder = useCallback((dir) => {
+    const id = `enc-${dir}`;
+    setActiveKeysMap((prev) => ({ ...prev, [id]: true }));
+    setTimeout(() => setActiveKeysMap((prev) => { const n = { ...prev }; delete n[id]; return n; }), 300);
+  }, []);
+
+  const handleKeyState = useCallback((msg) => {
+    if (msg.row >= 4) {
+      const dir = msg.col === 0 ? "left" : msg.col === 1 ? "right" : "button";
+      fireEncoder(dir);
+    } else {
+      const id = `${msg.row}-${msg.col}`;
+      setActiveKeysMap((prev) => {
+        const n = { ...prev };
+        if (msg.isPressed) n[id] = true;
+        else delete n[id];
+        return n;
+      });
+    }
+  }, [fireEncoder]);
+
+  const handleSerialMessage = useCallback((msg) => {
+    if (msg.cmd && msg.cmd !== "key_state") {
+      addLog(`[${msg.cmd.toUpperCase()}] ${JSON.stringify(msg.data || msg)}`, "raw");
+    } else if (msg.cmd !== "key_state") {
       addLog(JSON.stringify(msg), "raw");
+    }
 
-      switch (msg.cmd) {
-        case "config": {
-          setConfigLoaded(true);
-          if (Array.isArray(msg.data?.layers) && msg.data.layers.length > 0) {
-            setDeviceInfo((prev) => ({
-              ...prev,
-              version: msg.data?._version ? `v${msg.data._version}` : prev?.version,
-            }));
-            addToast("Configuration loaded from device", "success");
-            addLog("Loaded configuration from device", "info");
-          } else {
-            addToast("Device returned empty config — using defaults", "warn");
-            addLog("Empty configuration in response", "warn");
-          }
-          break;
+    switch (msg.cmd) {
+      case "config": {
+        setConfigLoaded(true);
+        if (Array.isArray(msg.data?.layers) && msg.data.layers.length > 0) {
+          setDeviceInfo((prev) => ({
+            ...prev,
+            version: msg.data?._version ? `v${msg.data._version}` : prev?.version,
+          }));
+          addToast("Configuration loaded from device", "success");
+          addLog("Configuration loaded successfully", "info");
+        } else {
+          addLog("Empty configuration — using defaults", "warn");
         }
-        case "key_state": {
-          // handled by LayoutView — just log
-          break;
-        }
-        case "layer_change": {
-          const l = msg.layer;
-          setDeviceLayer(l);
-          addLog(`Device switched to layer ${l}`, "info");
-          break;
-        }
-        case "status": {
-          const ok = msg.status === "success";
-          addToast(msg.msg || (ok ? "Operation successful" : "Operation failed"), ok ? "success" : "error");
-          addLog(msg.msg || msg.status, ok ? "info" : "error");
-          break;
-        }
-        case "log": {
-          addLog(msg.msg, msg.level ?? "info");
-          if (msg.level === "error") addToast(`[Device] ${msg.msg}`, "error");
-          if (msg.level === "warn") addToast(`[Device] ${msg.msg}`, "warn");
-          break;
-        }
-        case "macros": {
-          addLog("Loaded macros from device", "info");
-          break;
-        }
-        case "macro_progress": {
-          // handled by MacrosView
-          break;
-        }
-        default:
-          break;
+        break;
       }
+      case "key_state": {
+        handleKeyState(msg);
+        break;
+      }
+      case "layer_change": {
+        setDeviceLayer(msg.layer);
+        addLog(`Device switched to layer ${msg.layer}`, "info");
+        break;
+      }
+      case "status": {
+        const ok = msg.status === "success";
+        addToast(msg.msg || (ok ? "Operation successful" : "Operation failed"), ok ? "success" : "error");
+        addLog(msg.msg || msg.status, ok ? "info" : "error");
+        break;
+      }
+      case "log": {
+        addLog(msg.msg, msg.level ?? "info");
+        if (msg.level === "error" || msg.level === "warn")
+          addToast(`[Device] ${msg.msg}`, msg.level);
+        break;
+      }
+      default:
+        break;
+    }
 
-      domainHandlerRef.current?.(msg);
-    },
-    [addLog, addToast],
-  );
+    domainHandler.current?.(msg);
+  }, [addLog, addToast, handleKeyState]);
 
-  const handleError = useCallback(
-    (err) => {
-      const msg = typeof err === "string" ? err : err.message || "Unknown error";
-      addToast(msg, "error");
-      addLog(msg, "error");
-    },
-    [addToast, addLog],
-  );
+  const handleError = useCallback((err) => {
+    const msg = typeof err === "string" ? err : err.message || "Unknown error";
+    addToast(msg, "error");
+    addLog(msg, "error");
+  }, [addToast, addLog]);
 
   const handleConnect = useCallback(async () => {
     if (isConnected) {
@@ -109,10 +122,7 @@ export function DeviceProvider({ children }) {
 
   const connectedOnce = useRef(false);
   useEffect(() => {
-    if (!isConnected) {
-      connectedOnce.current = false;
-      return;
-    }
+    if (!isConnected) { connectedOnce.current = false; return; }
     if (connectedOnce.current) return;
     connectedOnce.current = true;
     addToast("Connected to device!", "success");
@@ -142,6 +152,10 @@ export function DeviceProvider({ children }) {
         setDomainHandler,
         deviceInfo,
         setDeviceInfo,
+        activeKeysMap,
+        pressKey,
+        fireEncoder,
+        handleKeyState,
       }}
     >
       {children}

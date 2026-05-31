@@ -1,0 +1,189 @@
+import { useRef, useCallback, useState, useEffect } from "react";
+import { useDevice } from "../../hooks/useDevice";
+import { useAutoScroll } from "../../hooks/useAutoScroll";
+
+const TAG_COLORS: Record<string, string> = {
+  SYSTEM: "var(--log-system)",
+  DEVICE: "var(--log-device)",
+  INPUT: "var(--log-input)",
+};
+
+function LogLine({ log }: { log: { message: string; time: string; level?: string } }) {
+  const tagMatch = log.message.match(/^\[(\w+)\]/);
+  const tagColor = tagMatch ? TAG_COLORS[tagMatch[1]] || "var(--text-secondary)" : "var(--text-secondary)";
+  const rest = tagMatch ? log.message.slice(tagMatch[0].length).trim() : log.message;
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        gap: "var(--space-2)",
+        fontSize: "var(--text-xs)",
+        fontFamily: "var(--font-mono)",
+        padding: "1px 0",
+        opacity: 0,
+        animation: "logFadeIn 60ms ease forwards",
+      }}
+    >
+      <span style={{ color: "var(--log-ts)", flexShrink: 0 }}>{log.time}</span>
+      {tagMatch && (
+        <span style={{ color: tagColor, flexShrink: 0 }}>{tagMatch[0]}</span>
+      )}
+      <span style={{ color: tagColor }}>{rest}</span>
+    </div>
+  );
+}
+
+export default function SerialMonitor() {
+  const { serialLogs, clearLogs, isConnected } = useDevice();
+  const { containerRef, isAtBottom, handleScroll, scrollToBottom } = useAutoScroll([serialLogs.length]);
+  const [cmd, setCmd] = useState("");
+  const { send } = useDevice();
+
+  const handleSendCmd = useCallback(() => {
+    const trimmed = cmd.trim();
+    if (!trimmed) return;
+    send({ cmd: trimmed });
+    setCmd("");
+  }, [cmd, send]);
+
+  const copyLogs = useCallback(() => {
+    const text = serialLogs
+      .map((l) => `${l.time} ${l.message}`)
+      .join("\n");
+    navigator.clipboard.writeText(text);
+  }, [serialLogs]);
+
+  return (
+    <div
+      style={{
+        background: "var(--bg-surface)",
+        borderTop: "1px solid var(--border)",
+        display: "flex",
+        flexDirection: "column",
+        height: 180,
+        flexShrink: 0,
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "var(--space-1) var(--space-3)",
+          borderBottom: "1px solid var(--border-subtle)",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+          <span style={{ fontSize: 12, color: "var(--text-muted)" }}>⊡</span>
+          <span
+            style={{
+              fontSize: "var(--text-xs)",
+              color: "var(--text-muted)",
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+            }}
+          >
+            SERIAL MONITOR
+          </span>
+          <div
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: "50%",
+              background: isConnected ? "var(--status-connected)" : "var(--status-disconnected)",
+            }}
+          />
+          <span style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}>
+            {isConnected ? "COM3: 115200" : "Disconnected"}
+          </span>
+        </div>
+        <div style={{ display: "flex", gap: "var(--space-2)" }}>
+          <button
+            onClick={copyLogs}
+            style={{
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "var(--text-xs)",
+              color: "var(--text-secondary)",
+              padding: "2px 6px",
+              borderRadius: "var(--radius-sm)",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-primary)")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-secondary)")}
+          >
+            Copy
+          </button>
+          <button
+            onClick={clearLogs}
+            style={{
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "var(--text-xs)",
+              color: "var(--text-secondary)",
+              padding: "2px 6px",
+              borderRadius: "var(--radius-sm)",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-primary)")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-secondary)")}
+          >
+            Clear
+          </button>
+        </div>
+      </div>
+
+      <div
+        ref={containerRef as React.RefObject<HTMLDivElement>}
+        onScroll={handleScroll}
+        style={{
+          flex: 1,
+          overflowY: "auto",
+          background: "var(--bg-app)",
+          padding: "var(--space-1) var(--space-3)",
+        }}
+      >
+        {serialLogs.map((log, i) => (
+          <LogLine key={i} log={log} />
+        ))}
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "var(--space-2)",
+          padding: "var(--space-1) var(--space-3)",
+          borderTop: "1px solid var(--border-subtle)",
+          background: "var(--bg-app)",
+        }}
+      >
+        <span style={{ color: "var(--accent)", fontSize: "var(--text-sm)" }}>&gt;</span>
+        <input
+          value={cmd}
+          onChange={(e) => setCmd(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleSendCmd();
+          }}
+          placeholder="Enter command..."
+          style={{
+            flex: 1,
+            background: "transparent",
+            border: "none",
+            outline: "none",
+            color: "var(--text-primary)",
+            fontSize: "var(--text-sm)",
+          }}
+        />
+      </div>
+
+      <style>{`
+        @keyframes logFadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+      `}</style>
+    </div>
+  );
+}

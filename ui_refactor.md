@@ -6,7 +6,6 @@
 - łatwa dostępność serial monitora
 - zachowanie zasad DDD (gwarancja modularności i prostego rozszerzania interfejsu)
 - realizacja zasad material 3 expressive (spójny, kolorowy interfejs, nastawienie na ux, płynne animacje, reaktywność w kontekście ui/ux, minimalizm)
-- zgodność z makietami w `.\stitch_web_serial_macro_deck\stitch_web_serial_macro_deck\*`
 
 # sekcje
 
@@ -26,12 +25,14 @@
 
 ## main content
 
-- podział 55% na główny content, 45% na komponent z logami
+- dwa główne kontenery z podziałem:
+  - 55% wysokości: główna treść
+  - 45% wysokości: komponent z logami
 - zależnie od wybranej zakładki w menu wyświetlana różna treść
 
 ### komponent z logami
 
-- logi w formacie `hh.mm.SS.sss  [source]  log content` z odpowiednim kolorowaniem
+- logi w formacie `hh:mm:SS:sss  [source]  log content` z odpowiednim kolorowaniem zależnie od źródła logów
 - komponent ma miniheader z tytułem SERIAL MONITOR
 - w prawym górnym rogu komponentu z logami przyciski do zerowania logów i skopiowania logów do schowka
 - autoscroll włączony domyślnie i kiedy użytkownik przewinie na sam dół, wyłączany kiedy użytkownik przescrolluje wyżej
@@ -39,13 +40,17 @@
 ### layout
 
 - dwa komponenty w wierszu:
-  - 70% szerokosci: komponent layoutu
-  - 30% szerokosci: komponent bindingu
+  - 60% szerokosci: komponent layoutu
+  - 40% szerokosci: komponent bindingu
 
 #### komponent layoutu
 
+- dwa komponenty w wierszu:
+  - 30% szerokości: komponent z listą profili
+  - 70% szerokości: komponent z makropadem
 - klikalna wizualizacja makropada
-- siatka przycisków 4x4 i po prawej stronie okrągła wizualizacja enkodera z kropką oznaczającą pozycję obrotu
+- siatka przycisków 4x4 i po prawej stronie wizualizacja enkodera
+- wizualizacja enkodera to estetyczny, minimalistyczny okrąg z kropką informującą o stanie obrotu enkodera (kropka zmienia położenie na sygnale obrotu)
 - fizyczne kliknięcie przycisku (odpowiednie zdarzenie w serial monitorze) podświetla kliknięty przycisk
 - obrót i kliknięcie enkodera jest wizualizowany na komponencie
 - wybór przycisku otwiera komponent bindingu tego klawisza
