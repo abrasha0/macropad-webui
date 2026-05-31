@@ -1,4 +1,4 @@
-import { useRef, useCallback, useState, useEffect } from "react";
+import { useCallback } from "react";
 import { useDevice } from "../../hooks/useDevice";
 import { useAutoScroll } from "../../hooks/useAutoScroll";
 
@@ -6,11 +6,32 @@ const TAG_COLORS: Record<string, string> = {
   SYSTEM: "var(--log-system)",
   DEVICE: "var(--log-device)",
   INPUT: "var(--log-input)",
+  CONFIG: "var(--log-system)",
+  MACROS: "var(--log-device)",
+  LAYER_CHANGE: "var(--warning)",
+  STATUS: "var(--log-system)",
+  SET_CONFIG: "var(--accent)",
+  RUN_MACRO: "var(--action-keystroke)",
+  LOG: "#A8D080",
+  GET_CONFIG: "var(--text-muted)",
+  GET_LAYER: "var(--text-muted)",
+  GET_MACROS: "var(--text-muted)",
+};
+
+const LEVEL_COLORS: Record<string, string> = {
+  error: "var(--danger)",
+  warn: "var(--warning)",
+  info: "var(--log-system)",
+  success: "var(--log-device)",
+  raw: "var(--text-secondary)",
 };
 
 function LogLine({ log }: { log: { message: string; time: string; level?: string } }) {
   const tagMatch = log.message.match(/^\[(\w+)\]/);
-  const tagColor = tagMatch ? TAG_COLORS[tagMatch[1]] || "var(--text-secondary)" : "var(--text-secondary)";
+  const tag = tagMatch ? tagMatch[1] : null;
+  const tagColor = tag ? (TAG_COLORS[tag] || "var(--text-secondary)") : null;
+  const levelColor = !tag ? LEVEL_COLORS[log.level || "raw"] || "var(--text-secondary)" : null;
+  const lineColor = tagColor || levelColor || "var(--text-secondary)";
   const rest = tagMatch ? log.message.slice(tagMatch[0].length).trim() : log.message;
 
   return (
@@ -18,7 +39,7 @@ function LogLine({ log }: { log: { message: string; time: string; level?: string
       style={{
         display: "flex",
         gap: "var(--space-2)",
-        fontSize: "var(--text-xs)",
+        fontSize: 9,
         fontFamily: "var(--font-mono)",
         padding: "1px 0",
         opacity: 0,
@@ -29,7 +50,7 @@ function LogLine({ log }: { log: { message: string; time: string; level?: string
       {tagMatch && (
         <span style={{ color: tagColor, flexShrink: 0 }}>{tagMatch[0]}</span>
       )}
-      <span style={{ color: tagColor }}>{rest}</span>
+      <span style={{ color: lineColor }}>{rest}</span>
     </div>
   );
 }
@@ -37,15 +58,6 @@ function LogLine({ log }: { log: { message: string; time: string; level?: string
 export default function SerialMonitor() {
   const { serialLogs, clearLogs, isConnected } = useDevice();
   const { containerRef, isAtBottom, handleScroll, scrollToBottom } = useAutoScroll([serialLogs.length]);
-  const [cmd, setCmd] = useState("");
-  const { send } = useDevice();
-
-  const handleSendCmd = useCallback(() => {
-    const trimmed = cmd.trim();
-    if (!trimmed) return;
-    send({ cmd: trimmed });
-    setCmd("");
-  }, [cmd, send]);
 
   const copyLogs = useCallback(() => {
     const text = serialLogs
@@ -57,12 +69,12 @@ export default function SerialMonitor() {
   return (
     <div
       style={{
+        flex: "45%",
+        minHeight: 0,
         background: "var(--bg-surface)",
         borderTop: "1px solid var(--border)",
         display: "flex",
         flexDirection: "column",
-        height: 180,
-        flexShrink: 0,
       }}
     >
       <div
@@ -75,10 +87,10 @@ export default function SerialMonitor() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
-          <span style={{ fontSize: 12, color: "var(--text-muted)" }}>⊡</span>
+          <span style={{ fontSize: 10, color: "var(--text-muted)" }}>⊡</span>
           <span
             style={{
-              fontSize: "var(--text-xs)",
+              fontSize: 10,
               color: "var(--text-muted)",
               letterSpacing: "0.08em",
               textTransform: "uppercase",
@@ -94,7 +106,7 @@ export default function SerialMonitor() {
               background: isConnected ? "var(--status-connected)" : "var(--status-disconnected)",
             }}
           />
-          <span style={{ fontSize: "var(--text-xs)", color: "var(--text-muted)" }}>
+          <span style={{ fontSize: 9, color: "var(--text-muted)" }}>
             {isConnected ? "COM3: 115200" : "Disconnected"}
           </span>
         </div>
@@ -105,7 +117,7 @@ export default function SerialMonitor() {
               background: "transparent",
               border: "none",
               cursor: "pointer",
-              fontSize: "var(--text-xs)",
+              fontSize: 10,
               color: "var(--text-secondary)",
               padding: "2px 6px",
               borderRadius: "var(--radius-sm)",
@@ -121,7 +133,7 @@ export default function SerialMonitor() {
               background: "transparent",
               border: "none",
               cursor: "pointer",
-              fontSize: "var(--text-xs)",
+              fontSize: 10,
               color: "var(--text-secondary)",
               padding: "2px 6px",
               borderRadius: "var(--radius-sm)",
@@ -147,35 +159,6 @@ export default function SerialMonitor() {
         {serialLogs.map((log, i) => (
           <LogLine key={i} log={log} />
         ))}
-      </div>
-
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "var(--space-2)",
-          padding: "var(--space-1) var(--space-3)",
-          borderTop: "1px solid var(--border-subtle)",
-          background: "var(--bg-app)",
-        }}
-      >
-        <span style={{ color: "var(--accent)", fontSize: "var(--text-sm)" }}>&gt;</span>
-        <input
-          value={cmd}
-          onChange={(e) => setCmd(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") handleSendCmd();
-          }}
-          placeholder="Enter command..."
-          style={{
-            flex: 1,
-            background: "transparent",
-            border: "none",
-            outline: "none",
-            color: "var(--text-primary)",
-            fontSize: "var(--text-sm)",
-          }}
-        />
       </div>
 
       <style>{`
