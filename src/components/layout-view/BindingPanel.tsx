@@ -27,14 +27,29 @@ export default function BindingPanel({
   strings: string[];
   onAddMacro: () => void;
 }) {
-  const { layers, activeLayer, activeKey, activeEncoderAction, setActiveKey, setActiveEncoderAction, updateKey, updateEncoder } = useLayout();
+  const {
+    layers,
+    activeLayer,
+    activeKey,
+    activeEncoderAction,
+    setActiveKey,
+    setActiveEncoderAction,
+    updateKey,
+    updateEncoder,
+  } = useLayout();
   const { isConnected } = useDevice();
 
   // ---- ALL hooks unconditionally ----
   const [bindingTab, setBindingTab] = useState("keystroke");
-  const [mods, setMods] = useState({ CTRL: false, ALT: false, SHIFT: false, WIN: false });
+  const [mods, setMods] = useState({
+    CTRL: false,
+    ALT: false,
+    SHIFT: false,
+    WIN: false,
+  });
   const [savedStatus, setSavedStatus] = useState(false);
   const [encAction, setEncAction] = useState("left");
+  const [navExpanded, setNavExpanded] = useState(false);
 
   // Dismiss on Escape
   useEffect(() => {
@@ -53,7 +68,9 @@ export default function BindingPanel({
   const encoder = layers[activeLayer]?.encoder;
 
   const current = String(
-    activeKey ? (layers[activeLayer]?.keys?.[activeKey.rIdx]?.[activeKey.cIdx] || "") : ""
+    activeKey
+      ? layers[activeLayer]?.keys?.[activeKey.rIdx]?.[activeKey.cIdx] || ""
+      : "",
   );
   const baseKey = current.split("+").pop() || "";
   const isMacroBinding = current.startsWith("M:");
@@ -63,7 +80,7 @@ export default function BindingPanel({
       if (!activeKey) return;
       updateKey(activeKey.rIdx, activeKey.cIdx, val);
     },
-    [activeKey, updateKey]
+    [activeKey, updateKey],
   );
 
   const buildBinding = useCallback(
@@ -82,7 +99,7 @@ export default function BindingPanel({
         commit(key);
       }
     },
-    [commit, mods, activeKey]
+    [commit, mods, activeKey],
   );
 
   const handleSave = useCallback(() => {
@@ -151,7 +168,13 @@ export default function BindingPanel({
           >
             Encoder Binding
           </span>
-          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "var(--space-2)",
+            }}
+          >
             <Badge>ENC</Badge>
             <button
               onClick={dismiss}
@@ -164,8 +187,12 @@ export default function BindingPanel({
                 fontFamily: "inherit",
                 lineHeight: 1,
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-primary)")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.color = "var(--text-primary)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.color = "var(--text-muted)")
+              }
             >
               ✕
             </button>
@@ -205,42 +232,61 @@ export default function BindingPanel({
           ))}
         </div>
 
-        <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
-          {/* Vertical tool column */}
+        <div
+          style={{
+            display: "flex",
+            flex: 1,
+            minHeight: 0,
+            flexDirection: "row-reverse",
+            gap: "var(--space-4)",
+          }}
+        >
+          {/* Vertical tool column — hover to expand — visually on the right via row-reverse */}
           <div
+            onMouseEnter={() => setNavExpanded(true)}
+            onMouseLeave={() => setNavExpanded(false)}
             style={{
               display: "flex",
               flexDirection: "column",
-              alignItems: "center",
               gap: 4,
-              width: 24,
+              width: navExpanded ? 72 : 24,
               flexShrink: 0,
               paddingTop: "var(--space-1)",
               paddingBottom: "var(--space-1)",
+              transition: "width 0.15s ease",
+              overflow: "hidden",
+              whiteSpace: "nowrap",
             }}
           >
             {BINDING_TABS.map((t) => {
-              const Icon = t.id === "keystroke" ? Keyboard : t.id === "macro" ? Play : Disc3;
+              const Icon =
+                t.id === "keystroke"
+                  ? Keyboard
+                  : t.id === "macro"
+                    ? Play
+                    : Disc3;
               return (
                 <button
                   key={t.id}
                   onClick={() => setBindingTab(t.id)}
-                  title={t.label}
                   style={{
-                    width: 22,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
                     height: 22,
                     border: "none",
                     borderRadius: "var(--radius-sm)",
                     background:
                       bindingTab === t.id ? "var(--accent)" : "transparent",
-                    color:
-                      bindingTab === t.id ? "#000" : "var(--text-muted)",
+                    color: bindingTab === t.id ? "#000" : "var(--text-muted)",
                     cursor: "pointer",
-                    padding: 0,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
+                    padding: "0 4px",
+                    fontFamily: "inherit",
+                    fontSize: "var(--text-xs)",
+                    fontWeight: 500,
+                    textAlign: "left",
                     transition: "all 0.1s ease",
+                    flexShrink: 0,
                   }}
                   onMouseEnter={(e) => {
                     if (bindingTab !== t.id)
@@ -251,7 +297,8 @@ export default function BindingPanel({
                       e.currentTarget.style.color = "var(--text-muted)";
                   }}
                 >
-                  <Icon size={13} />
+                  <Icon size={13} style={{ flexShrink: 0 }} />
+                  {navExpanded && <span>{t.label}</span>}
                 </button>
               );
             })}
@@ -260,25 +307,32 @@ export default function BindingPanel({
 
             <button
               onClick={dismiss}
-              title="Done"
               style={{
-                width: 22,
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
                 height: 22,
                 border: "none",
                 borderRadius: "var(--radius-sm)",
                 background: "transparent",
                 color: "var(--text-muted)",
                 cursor: "pointer",
-                padding: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
+                padding: "0 4px",
+                fontFamily: "inherit",
+                fontSize: "var(--text-xs)",
+                textAlign: "left",
                 transition: "all 0.1s ease",
+                flexShrink: 0,
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-primary)")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.color = "var(--text-primary)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.color = "var(--text-muted)")
+              }
             >
-              <Save size={13} />
+              <Save size={13} style={{ flexShrink: 0 }} />
+              {navExpanded && <span>Done</span>}
             </button>
           </div>
 
@@ -286,7 +340,8 @@ export default function BindingPanel({
             style={{
               flex: 1,
               minWidth: 0,
-              marginLeft: "var(--space-2)",
+              paddingLeft: "var(--space-2)",
+              paddingLeft: "var(--space-2)",
               display: "flex",
               flexDirection: "column",
               gap: "var(--space-3)",
@@ -328,9 +383,14 @@ export default function BindingPanel({
               <div>
                 <SectionLabel>Assign Macro</SectionLabel>
                 <select
-                  value={encoder?.[encAction]?.startsWith("M:") ? encoder[encAction] : ""}
+                  value={
+                    encoder?.[encAction]?.startsWith("M:")
+                      ? encoder[encAction]
+                      : ""
+                  }
                   onChange={(e) => {
-                    if (e.target.value) updateEncoder(encAction, e.target.value);
+                    if (e.target.value)
+                      updateEncoder(encAction, e.target.value);
                   }}
                   style={{
                     width: "100%",
@@ -445,7 +505,13 @@ export default function BindingPanel({
         >
           Binding: Key {row * 4 + col - 3}
         </span>
-        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "var(--space-2)",
+          }}
+        >
           <Badge>{`${row}, ${col}`}</Badge>
           <button
             onClick={dismiss}
@@ -458,50 +524,69 @@ export default function BindingPanel({
               fontFamily: "inherit",
               lineHeight: 1,
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-primary)")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.color = "var(--text-primary)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.color = "var(--text-muted)")
+            }
           >
             ✕
           </button>
         </div>
       </div>
 
-      <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
-        {/* Vertical tool column */}
+      <div
+        style={{
+          display: "flex",
+          flex: 1,
+          minHeight: 0,
+          flexDirection: "row-reverse",
+          gap: "var(--space-4)",
+        }}
+      >
+        {/* Vertical tool column — hover to expand */}
         <div
+          onMouseEnter={() => setNavExpanded(true)}
+          onMouseLeave={() => setNavExpanded(false)}
           style={{
             display: "flex",
             flexDirection: "column",
-            alignItems: "center",
             gap: 4,
-            width: 24,
+            width: navExpanded ? 72 : 24,
             flexShrink: 0,
             paddingTop: "var(--space-1)",
             paddingBottom: "var(--space-1)",
+            transition: "width 0.15s ease",
+            overflow: "hidden",
+            whiteSpace: "nowrap",
           }}
         >
           {BINDING_TABS.map((t) => {
-            const Icon = t.id === "keystroke" ? Keyboard : t.id === "macro" ? Play : Disc3;
+            const Icon =
+              t.id === "keystroke" ? Keyboard : t.id === "macro" ? Play : Disc3;
             return (
               <button
                 key={t.id}
                 onClick={() => setBindingTab(t.id)}
-                title={t.label}
                 style={{
-                  width: 22,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
                   height: 22,
                   border: "none",
                   borderRadius: "var(--radius-sm)",
                   background:
                     bindingTab === t.id ? "var(--accent)" : "transparent",
-                  color:
-                    bindingTab === t.id ? "#000" : "var(--text-muted)",
+                  color: bindingTab === t.id ? "#000" : "var(--text-muted)",
                   cursor: "pointer",
-                  padding: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
+                  padding: "0 4px",
+                  fontFamily: "inherit",
+                  fontSize: "var(--text-xs)",
+                  fontWeight: 500,
+                  textAlign: "left",
                   transition: "all 0.1s ease",
+                  flexShrink: 0,
                 }}
                 onMouseEnter={(e) => {
                   if (bindingTab !== t.id)
@@ -512,60 +597,72 @@ export default function BindingPanel({
                     e.currentTarget.style.color = "var(--text-muted)";
                 }}
               >
-                <Icon size={13} />
+                <Icon size={13} style={{ flexShrink: 0 }} />
+                {navExpanded && <span>{t.label}</span>}
               </button>
             );
           })}
 
-          {/* Spacer */}
           <div style={{ flex: 1 }} />
 
-          {/* Clear */}
           <button
             onClick={handleClear}
-            title="Clear binding"
             style={{
-              width: 22,
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
               height: 22,
               border: "none",
               borderRadius: "var(--radius-sm)",
               background: "transparent",
               color: "var(--text-muted)",
               cursor: "pointer",
-              padding: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              padding: "0 4px",
+              fontFamily: "inherit",
+              fontSize: "var(--text-xs)",
+              textAlign: "left",
               transition: "all 0.1s ease",
+              flexShrink: 0,
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--danger)")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.color = "var(--danger)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.color = "var(--text-muted)")
+            }
           >
-            <Trash2 size={13} />
+            <Trash2 size={13} style={{ flexShrink: 0 }} />
+            {navExpanded && <span>Clear</span>}
           </button>
 
-          {/* Save */}
           <button
             onClick={handleSave}
-            title="Save binding"
             style={{
-              width: 22,
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
               height: 22,
               border: "none",
               borderRadius: "var(--radius-sm)",
               background: "transparent",
               color: "var(--text-muted)",
               cursor: "pointer",
-              padding: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              padding: "0 4px",
+              fontFamily: "inherit",
+              fontSize: "var(--text-xs)",
+              textAlign: "left",
               transition: "all 0.1s ease",
+              flexShrink: 0,
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--accent)")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.color = "var(--accent)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.color = "var(--text-muted)")
+            }
           >
-            <Save size={13} />
+            <Save size={13} style={{ flexShrink: 0 }} />
+            {navExpanded && <span>Save</span>}
           </button>
         </div>
 
@@ -580,103 +677,196 @@ export default function BindingPanel({
           }}
         >
           {bindingTab === "keystroke" && (
-          <>
-            <div>
-              <SectionLabel>Primary Key</SectionLabel>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "var(--space-2)",
-                  background: "var(--bg-input)",
-                  border: "1px solid var(--accent)",
-                  borderRadius: "var(--radius-md)",
-                  padding: "var(--space-2) var(--space-3)",
-                }}
-              >
-                <span
+            <>
+              <div>
+                <SectionLabel>Primary Key</SectionLabel>
+                <div
                   style={{
-                    flex: 1,
-                    fontSize: "var(--text-sm)",
-                    color: "var(--text-primary)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "var(--space-2)",
+                    background: "var(--bg-input)",
+                    border: "1px solid var(--accent)",
+                    borderRadius: "var(--radius-md)",
+                    padding: "var(--space-2) var(--space-3)",
                   }}
                 >
-                  {baseKey || "\u2014"}
-                </span>
-                <button
-                  onClick={handleClear}
+                  <span
+                    style={{
+                      flex: 1,
+                      fontSize: "var(--text-sm)",
+                      color: "var(--text-primary)",
+                    }}
+                  >
+                    {baseKey || "\u2014"}
+                  </span>
+                  <button
+                    onClick={handleClear}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      cursor: "pointer",
+                      color: "var(--text-muted)",
+                      fontSize: "var(--text-sm)",
+                      fontFamily: "inherit",
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.color = "var(--danger)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.color = "var(--text-muted)")
+                    }
+                  >
+                    ×
+                  </button>
+                </div>
+                <div
                   style={{
+                    fontSize: "var(--text-xs)",
+                    color: "var(--text-muted)",
+                    fontStyle: "italic",
+                    marginTop: 4,
+                  }}
+                >
+                  Click to record a new key
+                </div>
+              </div>
+
+              <div>
+                <SectionLabel>Modifiers</SectionLabel>
+                <div style={{ display: "flex", gap: "var(--space-2)" }}>
+                  {["CTRL", "ALT", "SHIFT", "WIN"].map((m) => (
+                    <button
+                      key={m}
+                      onClick={() =>
+                        setMods((prev) => ({
+                          ...prev,
+                          [m]: !prev[m as keyof typeof prev],
+                        }))
+                      }
+                      style={{
+                        flex: 1,
+                        padding: "var(--space-1) var(--space-2)",
+                        borderRadius: "var(--radius-sm)",
+                        border: "1px solid",
+                        cursor: "pointer",
+                        fontSize: "var(--text-xs)",
+                        fontWeight: 600,
+                        fontFamily: "inherit",
+                        transition: "all 0.12s ease",
+                        ...(mods[m as keyof typeof mods]
+                          ? {
+                              background: "var(--accent)",
+                              color: "#000",
+                              borderColor: "var(--accent)",
+                            }
+                          : {
+                              background: "var(--bg-surface)",
+                              color: "var(--text-secondary)",
+                              borderColor: "var(--border)",
+                            }),
+                      }}
+                    >
+                      {m}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
+          {bindingTab === "macro" && (
+            <div>
+              <SectionLabel>Assign Macro</SectionLabel>
+              <select
+                value={isMacroBinding ? current : ""}
+                onChange={(e) => {
+                  if (e.target.value) commit(e.target.value);
+                }}
+                style={{
+                  width: "100%",
+                  background: "var(--bg-input)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "var(--radius-md)",
+                  padding: "var(--space-2) var(--space-3)",
+                  color: "var(--text-primary)",
+                  fontSize: "var(--text-sm)",
+                  fontFamily: "inherit",
+                  outline: "none",
+                }}
+              >
+                <option value="">None</option>
+                {macros.map((m: any, i: number) => (
+                  <option key={i} value={`M:${i}`}>
+                    {m.name || `Macro ${i}`}
+                  </option>
+                ))}
+              </select>
+              {macros.length === 0 && (
+                <button
+                  onClick={onAddMacro}
+                  style={{
+                    marginTop: "var(--space-2)",
+                    width: "100%",
+                    padding: "var(--space-2)",
+                    borderRadius: "var(--radius-md)",
+                    border: "1px dashed var(--border)",
                     background: "transparent",
-                    border: "none",
                     cursor: "pointer",
                     color: "var(--text-muted)",
                     fontSize: "var(--text-sm)",
                     fontFamily: "inherit",
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = "var(--danger)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
                 >
-                  ×
+                  + Create macro
                 </button>
-              </div>
+              )}
+            </div>
+          )}
+
+          {bindingTab === "media" && (
+            <div>
+              <SectionLabel>Media & System</SectionLabel>
               <div
                 style={{
-                  fontSize: "var(--text-xs)",
-                  color: "var(--text-muted)",
-                  fontStyle: "italic",
-                  marginTop: 4,
+                  display: "grid",
+                  gridTemplateColumns: "repeat(2, 1fr)",
+                  gap: "var(--space-1)",
                 }}
               >
-                Click to record a new key
-              </div>
-            </div>
-
-            <div>
-              <SectionLabel>Modifiers</SectionLabel>
-              <div style={{ display: "flex", gap: "var(--space-2)" }}>
-                {["CTRL", "ALT", "SHIFT", "WIN"].map((m) => (
+                {Object.keys(MEDIA_MAP).map((key) => (
                   <button
-                    key={m}
-                    onClick={() => setMods((prev) => ({ ...prev, [m]: !prev[m as keyof typeof prev] }))}
+                    key={key}
+                    onClick={() => buildBinding(key)}
                     style={{
-                      flex: 1,
-                      padding: "var(--space-1) var(--space-2)",
+                      padding: "var(--space-2)",
                       borderRadius: "var(--radius-sm)",
-                      border: "1px solid",
+                      border: `1px solid ${current === key ? "var(--accent)" : "var(--border)"}`,
+                      background:
+                        current === key
+                          ? "var(--accent-glow)"
+                          : "var(--bg-surface)",
                       cursor: "pointer",
+                      color:
+                        current === key
+                          ? "var(--text-accent)"
+                          : "var(--text-primary)",
                       fontSize: "var(--text-xs)",
-                      fontWeight: 600,
                       fontFamily: "inherit",
                       transition: "all 0.12s ease",
-                      ...(mods[m as keyof typeof mods]
-                        ? {
-                            background: "var(--accent)",
-                            color: "#000",
-                            borderColor: "var(--accent)",
-                          }
-                        : {
-                            background: "var(--bg-surface)",
-                            color: "var(--text-secondary)",
-                            borderColor: "var(--border)",
-                          }),
                     }}
                   >
-                    {m}
+                    {key}
                   </button>
                 ))}
               </div>
             </div>
-          </>
-        )}
+          )}
 
-        {bindingTab === "macro" && (
           <div>
-            <SectionLabel>Assign Macro</SectionLabel>
-            <select
-              value={isMacroBinding ? current : ""}
-              onChange={(e) => {
-                if (e.target.value) commit(e.target.value);
-              }}
+            <SectionLabel>Display Label (Optional)</SectionLabel>
+            <input
+              placeholder="e.g. 'Heal'"
               style={{
                 width: "100%",
                 background: "var(--bg-input)",
@@ -688,87 +878,9 @@ export default function BindingPanel({
                 fontFamily: "inherit",
                 outline: "none",
               }}
-            >
-              <option value="">None</option>
-              {macros.map((m: any, i: number) => (
-                <option key={i} value={`M:${i}`}>
-                  {m.name || `Macro ${i}`}
-                </option>
-              ))}
-            </select>
-            {macros.length === 0 && (
-              <button
-                onClick={onAddMacro}
-                style={{
-                  marginTop: "var(--space-2)",
-                  width: "100%",
-                  padding: "var(--space-2)",
-                  borderRadius: "var(--radius-md)",
-                  border: "1px dashed var(--border)",
-                  background: "transparent",
-                  cursor: "pointer",
-                  color: "var(--text-muted)",
-                  fontSize: "var(--text-sm)",
-                  fontFamily: "inherit",
-                }}
-              >
-                + Create macro
-              </button>
-            )}
+            />
           </div>
-        )}
-
-        {bindingTab === "media" && (
-          <div>
-            <SectionLabel>Media & System</SectionLabel>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(2, 1fr)",
-                gap: "var(--space-1)",
-              }}
-            >
-              {Object.keys(MEDIA_MAP).map((key) => (
-                <button
-                  key={key}
-                  onClick={() => buildBinding(key)}
-                  style={{
-                    padding: "var(--space-2)",
-                    borderRadius: "var(--radius-sm)",
-                    border: `1px solid ${current === key ? "var(--accent)" : "var(--border)"}`,
-                    background: current === key ? "var(--accent-glow)" : "var(--bg-surface)",
-                    cursor: "pointer",
-                    color: current === key ? "var(--text-accent)" : "var(--text-primary)",
-                    fontSize: "var(--text-xs)",
-                    fontFamily: "inherit",
-                    transition: "all 0.12s ease",
-                  }}
-                >
-                  {key}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div>
-          <SectionLabel>Display Label (Optional)</SectionLabel>
-          <input
-            placeholder="e.g. 'Heal'"
-            style={{
-              width: "100%",
-              background: "var(--bg-input)",
-              border: "1px solid var(--border)",
-              borderRadius: "var(--radius-md)",
-              padding: "var(--space-2) var(--space-3)",
-              color: "var(--text-primary)",
-              fontSize: "var(--text-sm)",
-              fontFamily: "inherit",
-              outline: "none",
-            }}
-          />
         </div>
-      </div>
       </div>
 
       {savedStatus && (
