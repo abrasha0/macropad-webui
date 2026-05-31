@@ -1,9 +1,9 @@
 import { useState, useCallback, useEffect } from "react";
 import { useLayout } from "../../hooks/useLayout";
 import { useDevice } from "../../hooks/useDevice";
-import TabSwitcher from "../ui/TabSwitcher";
 import SectionLabel from "../ui/SectionLabel";
 import Badge from "../ui/Badge";
+import { Keyboard, Play, Disc3, Trash2, Save } from "lucide-react";
 import { MEDIA_MAP } from "../../constants/hidCodes";
 
 const BINDING_TABS = [
@@ -205,145 +205,207 @@ export default function BindingPanel({
           ))}
         </div>
 
-        <TabSwitcher
-          tabs={BINDING_TABS}
-          activeTab={bindingTab}
-          onTabChange={setBindingTab}
-        />
-
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-          {bindingTab === "keystroke" && (
-            <div>
-              <SectionLabel>Key</SectionLabel>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "var(--space-2)",
-                  background: "var(--bg-input)",
-                  border: "1px solid var(--accent)",
-                  borderRadius: "var(--radius-md)",
-                  padding: "var(--space-2) var(--space-3)",
-                }}
-              >
-                <input
-                  value={encoder?.[encAction] || ""}
-                  onChange={(e) => updateEncoder(encAction, e.target.value)}
-                  placeholder="Type key name..."
+        <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
+          {/* Vertical tool column */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 4,
+              width: 24,
+              flexShrink: 0,
+              paddingTop: "var(--space-1)",
+              paddingBottom: "var(--space-1)",
+            }}
+          >
+            {BINDING_TABS.map((t) => {
+              const Icon = t.id === "keystroke" ? Keyboard : t.id === "macro" ? Play : Disc3;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setBindingTab(t.id)}
+                  title={t.label}
                   style={{
-                    flex: 1,
-                    background: "transparent",
+                    width: 22,
+                    height: 22,
                     border: "none",
-                    outline: "none",
+                    borderRadius: "var(--radius-sm)",
+                    background:
+                      bindingTab === t.id ? "var(--accent)" : "transparent",
+                    color:
+                      bindingTab === t.id ? "#000" : "var(--text-muted)",
+                    cursor: "pointer",
+                    padding: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transition: "all 0.1s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (bindingTab !== t.id)
+                      e.currentTarget.style.color = "var(--text-secondary)";
+                  }}
+                  onMouseLeave={(e) => {
+                    if (bindingTab !== t.id)
+                      e.currentTarget.style.color = "var(--text-muted)";
+                  }}
+                >
+                  <Icon size={13} />
+                </button>
+              );
+            })}
+
+            <div style={{ flex: 1 }} />
+
+            <button
+              onClick={dismiss}
+              title="Done"
+              style={{
+                width: 22,
+                height: 22,
+                border: "none",
+                borderRadius: "var(--radius-sm)",
+                background: "transparent",
+                color: "var(--text-muted)",
+                cursor: "pointer",
+                padding: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "all 0.1s ease",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-primary)")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
+            >
+              <Save size={13} />
+            </button>
+          </div>
+
+          <div
+            style={{
+              flex: 1,
+              minWidth: 0,
+              marginLeft: "var(--space-2)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "var(--space-3)",
+            }}
+          >
+            {bindingTab === "keystroke" && (
+              <div>
+                <SectionLabel>Key</SectionLabel>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "var(--space-2)",
+                    background: "var(--bg-input)",
+                    border: "1px solid var(--accent)",
+                    borderRadius: "var(--radius-md)",
+                    padding: "var(--space-2) var(--space-3)",
+                  }}
+                >
+                  <input
+                    value={encoder?.[encAction] || ""}
+                    onChange={(e) => updateEncoder(encAction, e.target.value)}
+                    placeholder="Type key name..."
+                    style={{
+                      flex: 1,
+                      background: "transparent",
+                      border: "none",
+                      outline: "none",
+                      color: "var(--text-primary)",
+                      fontSize: "var(--text-sm)",
+                      fontFamily: "inherit",
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {bindingTab === "macro" && (
+              <div>
+                <SectionLabel>Assign Macro</SectionLabel>
+                <select
+                  value={encoder?.[encAction]?.startsWith("M:") ? encoder[encAction] : ""}
+                  onChange={(e) => {
+                    if (e.target.value) updateEncoder(encAction, e.target.value);
+                  }}
+                  style={{
+                    width: "100%",
+                    background: "var(--bg-input)",
+                    border: "1px solid var(--border)",
+                    borderRadius: "var(--radius-md)",
+                    padding: "var(--space-2) var(--space-3)",
                     color: "var(--text-primary)",
                     fontSize: "var(--text-sm)",
                     fontFamily: "inherit",
-                  }}
-                />
-              </div>
-            </div>
-          )}
-
-          {bindingTab === "macro" && (
-            <div>
-              <SectionLabel>Assign Macro</SectionLabel>
-              <select
-                value={encoder?.[encAction]?.startsWith("M:") ? encoder[encAction] : ""}
-                onChange={(e) => {
-                  if (e.target.value) updateEncoder(encAction, e.target.value);
-                }}
-                style={{
-                  width: "100%",
-                  background: "var(--bg-input)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "var(--radius-md)",
-                  padding: "var(--space-2) var(--space-3)",
-                  color: "var(--text-primary)",
-                  fontSize: "var(--text-sm)",
-                  fontFamily: "inherit",
-                  outline: "none",
-                }}
-              >
-                <option value="">None</option>
-                {macros.map((m: any, i: number) => (
-                  <option key={i} value={`M:${i}`}>
-                    {m.name || `Macro ${i}`}
-                  </option>
-                ))}
-              </select>
-              {macros.length === 0 && (
-                <button
-                  onClick={onAddMacro}
-                  style={{
-                    marginTop: "var(--space-2)",
-                    width: "100%",
-                    padding: "var(--space-2)",
-                    borderRadius: "var(--radius-md)",
-                    border: "1px dashed var(--border)",
-                    background: "transparent",
-                    cursor: "pointer",
-                    color: "var(--text-muted)",
-                    fontSize: "var(--text-sm)",
-                    fontFamily: "inherit",
+                    outline: "none",
                   }}
                 >
-                  + Create macro
-                </button>
-              )}
-            </div>
-          )}
-
-          {bindingTab === "media" && (
-            <div>
-              <SectionLabel>Media & System</SectionLabel>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(2, 1fr)",
-                  gap: "var(--space-1)",
-                }}
-              >
-                {Object.keys(MEDIA_MAP).map((key) => (
+                  <option value="">None</option>
+                  {macros.map((m: any, i: number) => (
+                    <option key={i} value={`M:${i}`}>
+                      {m.name || `Macro ${i}`}
+                    </option>
+                  ))}
+                </select>
+                {macros.length === 0 && (
                   <button
-                    key={key}
-                    onClick={() => updateEncoder(encAction, key)}
+                    onClick={onAddMacro}
                     style={{
+                      marginTop: "var(--space-2)",
+                      width: "100%",
                       padding: "var(--space-2)",
-                      borderRadius: "var(--radius-sm)",
-                      border: "1px solid var(--border)",
-                      background: "var(--bg-surface)",
+                      borderRadius: "var(--radius-md)",
+                      border: "1px dashed var(--border)",
+                      background: "transparent",
                       cursor: "pointer",
-                      color: "var(--text-primary)",
-                      fontSize: "var(--text-xs)",
+                      color: "var(--text-muted)",
+                      fontSize: "var(--text-sm)",
                       fontFamily: "inherit",
-                      transition: "all 0.12s ease",
                     }}
                   >
-                    {key}
+                    + Create macro
                   </button>
-                ))}
+                )}
               </div>
-            </div>
-          )}
-        </div>
+            )}
 
-        <div style={{ display: "flex", gap: "var(--space-2)", marginTop: "auto" }}>
-          <button
-            onClick={dismiss}
-            style={{
-              flex: 1,
-              padding: "var(--space-2)",
-              borderRadius: "var(--radius-md)",
-              border: "1px solid var(--border)",
-              background: "transparent",
-              cursor: "pointer",
-              color: "var(--text-secondary)",
-              fontSize: "var(--text-sm)",
-              fontFamily: "inherit",
-            }}
-          >
-            Done
-          </button>
+            {bindingTab === "media" && (
+              <div>
+                <SectionLabel>Media & System</SectionLabel>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(2, 1fr)",
+                    gap: "var(--space-1)",
+                  }}
+                >
+                  {Object.keys(MEDIA_MAP).map((key) => (
+                    <button
+                      key={key}
+                      onClick={() => updateEncoder(encAction, key)}
+                      style={{
+                        padding: "var(--space-2)",
+                        borderRadius: "var(--radius-sm)",
+                        border: "1px solid var(--border)",
+                        background: "var(--bg-surface)",
+                        cursor: "pointer",
+                        color: "var(--text-primary)",
+                        fontSize: "var(--text-xs)",
+                        fontFamily: "inherit",
+                        transition: "all 0.12s ease",
+                      }}
+                    >
+                      {key}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <style>{`
@@ -404,14 +466,120 @@ export default function BindingPanel({
         </div>
       </div>
 
-      <TabSwitcher
-        tabs={BINDING_TABS}
-        activeTab={bindingTab}
-        onTabChange={setBindingTab}
-      />
+      <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
+        {/* Vertical tool column */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 4,
+            width: 24,
+            flexShrink: 0,
+            paddingTop: "var(--space-1)",
+            paddingBottom: "var(--space-1)",
+          }}
+        >
+          {BINDING_TABS.map((t) => {
+            const Icon = t.id === "keystroke" ? Keyboard : t.id === "macro" ? Play : Disc3;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setBindingTab(t.id)}
+                title={t.label}
+                style={{
+                  width: 22,
+                  height: 22,
+                  border: "none",
+                  borderRadius: "var(--radius-sm)",
+                  background:
+                    bindingTab === t.id ? "var(--accent)" : "transparent",
+                  color:
+                    bindingTab === t.id ? "#000" : "var(--text-muted)",
+                  cursor: "pointer",
+                  padding: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transition: "all 0.1s ease",
+                }}
+                onMouseEnter={(e) => {
+                  if (bindingTab !== t.id)
+                    e.currentTarget.style.color = "var(--text-secondary)";
+                }}
+                onMouseLeave={(e) => {
+                  if (bindingTab !== t.id)
+                    e.currentTarget.style.color = "var(--text-muted)";
+                }}
+              >
+                <Icon size={13} />
+              </button>
+            );
+          })}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-        {bindingTab === "keystroke" && (
+          {/* Spacer */}
+          <div style={{ flex: 1 }} />
+
+          {/* Clear */}
+          <button
+            onClick={handleClear}
+            title="Clear binding"
+            style={{
+              width: 22,
+              height: 22,
+              border: "none",
+              borderRadius: "var(--radius-sm)",
+              background: "transparent",
+              color: "var(--text-muted)",
+              cursor: "pointer",
+              padding: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "all 0.1s ease",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--danger)")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
+          >
+            <Trash2 size={13} />
+          </button>
+
+          {/* Save */}
+          <button
+            onClick={handleSave}
+            title="Save binding"
+            style={{
+              width: 22,
+              height: 22,
+              border: "none",
+              borderRadius: "var(--radius-sm)",
+              background: "transparent",
+              color: "var(--text-muted)",
+              cursor: "pointer",
+              padding: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "all 0.1s ease",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--accent)")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
+          >
+            <Save size={13} />
+          </button>
+        </div>
+
+        <div
+          style={{
+            flex: 1,
+            minWidth: 0,
+            marginLeft: "var(--space-2)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-3)",
+          }}
+        >
+          {bindingTab === "keystroke" && (
           <>
             <div>
               <SectionLabel>Primary Key</SectionLabel>
@@ -601,47 +769,20 @@ export default function BindingPanel({
           />
         </div>
       </div>
-
-      <div style={{ display: "flex", gap: "var(--space-2)", marginTop: "auto" }}>
-        <button
-          onClick={handleClear}
-          style={{
-            flex: 1,
-            padding: "var(--space-2)",
-            borderRadius: "var(--radius-md)",
-            border: "1px solid var(--border)",
-            background: "transparent",
-            cursor: "pointer",
-            color: "var(--text-secondary)",
-            fontSize: "var(--text-sm)",
-            fontFamily: "inherit",
-          }}
-        >
-          Clear
-        </button>
-        <button
-          onClick={handleSave}
-          style={{
-            flex: 2,
-            padding: "var(--space-3)",
-            borderRadius: "var(--radius-md)",
-            border: "none",
-            background: "var(--accent)",
-            color: "#000",
-            fontWeight: 600,
-            cursor: "pointer",
-            fontSize: "var(--text-sm)",
-            fontFamily: "inherit",
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-            transition: "all 0.12s ease",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "var(--shadow-accent)")}
-          onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "none")}
-        >
-          {savedStatus ? "Saved \u2713" : "SAVE BINDING"}
-        </button>
       </div>
+
+      {savedStatus && (
+        <div
+          style={{
+            fontSize: "var(--text-xs)",
+            color: "var(--accent)",
+            textAlign: "center",
+            marginTop: "auto",
+          }}
+        >
+          Saved ✓
+        </div>
+      )}
 
       <style>{`
         @keyframes bindingSlideIn {
