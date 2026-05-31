@@ -29,7 +29,9 @@ export default function Sidebar({
         gap: "var(--space-4)",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
+      <div
+        style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}
+      >
         <div
           style={{
             width: 32,
@@ -47,26 +49,48 @@ export default function Sidebar({
           ⌨
         </div>
         <div>
-          <div style={{ fontSize: "var(--text-lg)", fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.2 }}>
+          <div
+            style={{
+              fontSize: "var(--text-lg)",
+              fontWeight: 600,
+              color: "var(--text-primary)",
+              lineHeight: 1.2,
+            }}
+          >
             macropad
           </div>
-          <div style={{ fontSize: "var(--text-sm)", color: "var(--text-secondary)" }}>
+          <div
+            style={{
+              fontSize: "var(--text-sm)",
+              color: "var(--text-secondary)",
+            }}
+          >
             configurator
           </div>
         </div>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "var(--space-2)",
+        }}
+      >
         <div
           style={{
             width: 8,
             height: 8,
             borderRadius: "50%",
-            background: isConnected ? "var(--status-connected)" : "var(--status-disconnected)",
+            background: isConnected
+              ? "var(--status-connected)"
+              : "var(--status-disconnected)",
             flexShrink: 0,
           }}
         />
-        <span style={{ fontSize: "var(--text-sm)", color: "var(--text-secondary)" }}>
+        <span
+          style={{ fontSize: "var(--text-sm)", color: "var(--text-secondary)" }}
+        >
           {isConnected ? "Connected" : "Disconnected"}
         </span>
       </div>
@@ -76,28 +100,41 @@ export default function Sidebar({
         style={{
           width: "100%",
           padding: "var(--space-2) var(--space-3)",
+          marginBottom: "var(--space-3)",
           borderRadius: "var(--radius-md)",
-          fontWeight: 600,
+          fontWeight: isConnected ? 500 : 600,
           fontSize: "var(--text-sm)",
           border: "none",
           cursor: "pointer",
-          transition: "all 0.15s ease",
+          fontFamily: "inherit",
+          transition: "all 0.12s ease",
           ...(isConnected
             ? {
-                background: "transparent",
-                color: "var(--danger)",
-                border: "1px solid var(--danger)",
+                background: "var(--bg-surface)",
+                color: "var(--text-muted)",
               }
             : {
                 background: "var(--accent)",
                 color: "#000",
               }),
         }}
+        onMouseEnter={(e) => {
+          if (!isConnected) return;
+          e.currentTarget.style.background = "var(--bg-surface-2)";
+          e.currentTarget.style.color = "var(--text-secondary)";
+        }}
+        onMouseLeave={(e) => {
+          if (!isConnected) return;
+          e.currentTarget.style.background = "var(--bg-surface)";
+          e.currentTarget.style.color = "var(--text-muted)";
+        }}
       >
         {isConnected ? "Disconnect device" : "Connect Device"}
       </button>
 
-      <nav style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1 }}>
+      <nav
+        style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1 }}
+      >
         {NAV.map(({ id, label, icon }) => {
           const active = activeTab === id;
           return (
@@ -127,7 +164,9 @@ export default function Sidebar({
                   : {}),
               }}
             >
-              <span style={{ width: 16, fontSize: 14, flexShrink: 0 }}>{icon}</span>
+              <span style={{ width: 16, fontSize: 14, flexShrink: 0 }}>
+                {icon}
+              </span>
               {label}
             </button>
           );
