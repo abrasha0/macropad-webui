@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from "react";
 import { LayoutContext } from "../hooks/useLayout";
 
-export function LayoutProvider({ children, layers, setLayers, activeLayer, setActiveLayer, send, isConnected }) {
+export function LayoutProvider({ children, layers, setLayers, activeLayer, setActiveLayer }) {
   const [activeKey, setActiveKey] = useState(null);
   const [activeEncoderAction, setActiveEncoderAction] = useState(null);
   const [editingLayerName, setEditingLayerName] = useState(null);
@@ -35,8 +35,7 @@ export function LayoutProvider({ children, layers, setLayers, activeLayer, setAc
 
   const handleLayerChange = useCallback((i) => {
     setActiveLayer(i);
-    if (isConnected) send({ cmd: "set_layer", layer: i });
-  }, [isConnected, send, setActiveLayer]);
+  }, [setActiveLayer]);
 
   const startRename = useCallback((i, name) => {
     setEditingLayerName(i);

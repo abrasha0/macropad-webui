@@ -10,7 +10,7 @@ export default function KeyGrid({
   macros: any[];
   strings: string[];
 }) {
-  const { layers, activeLayer, activeKey, setActiveKey, encoderAnim, fireEncoder } = useLayout();
+  const { layers, activeLayer, activeKey, setActiveKey, activeEncoderAction, setActiveEncoderAction, encoderAnim, fireEncoder } = useLayout();
   const { activeKeysMap } = useDevice();
   const layer = layers[activeLayer];
 
@@ -45,7 +45,10 @@ export default function KeyGrid({
                 label={cell}
                 selected={selected}
                 pressed={pressed}
-                onClick={() => setActiveKey({ rIdx, cIdx })}
+                onClick={() => {
+                  setActiveKey({ rIdx, cIdx });
+                  setActiveEncoderAction(null);
+                }}
                 macros={macros}
                 strings={strings}
               />
@@ -56,9 +59,17 @@ export default function KeyGrid({
 
       <div
         onClick={() => {
+          setActiveKey(null);
           fireEncoder("right");
+          setActiveEncoderAction(
+            activeEncoderAction ? null : { type: "encoder" }
+          );
         }}
-        style={{ cursor: "pointer" }}
+        style={{
+          cursor: "pointer",
+          opacity: activeEncoderAction ? 1 : undefined,
+          filter: activeEncoderAction ? "brightness(1.2)" : undefined,
+        }}
       >
         <Encoder
           animRotation={encoderAnim.rotation}

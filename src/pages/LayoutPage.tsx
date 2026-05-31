@@ -20,12 +20,12 @@ export default function LayoutPage({
         minHeight: 0,
       }}
     >
-      <div style={{ width: 220, flexShrink: 0 }}>
+      <div style={{ width: 200, flexShrink: 0, minWidth: 0, overflowY: "auto" }}>
         <ProfileList />
       </div>
       <div
         style={{
-          flex: 1,
+          flex: "0 0 auto",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -34,7 +34,14 @@ export default function LayoutPage({
       >
         <KeyGrid macros={macros} strings={strings} />
       </div>
-      <div style={{ width: 300, flexShrink: 0 }}>
+      <div
+        style={{
+          flex: 1,
+          minWidth: 0,
+          overflowY: "auto",
+          minHeight: 0,
+        }}
+      >
         <BindingPanel macros={macros} strings={strings} onAddMacro={onAddMacro} />
       </div>
     </div>

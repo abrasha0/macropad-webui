@@ -37,11 +37,48 @@ export function DeviceProvider({ children }) {
     setTimeout(() => setActiveKeysMap((prev) => { const n = { ...prev }; delete n[id]; return n; }), 300);
   }, []);
 
-  const handleKeyState = useCallback((msg) => {
-    if (msg.row >= 4) {
-      const dir = msg.col === 0 ? "left" : msg.col === 1 ? "right" : "button";
+  const handleEncoderEvent = useCallback((msg) => {
+    // Explicit encoder field (most flexible)
+    if (msg.encoder) {
+      fireEncoder(msg.encoder);
+      return true;
+    }
+    // Row >= 4 or col >= 4 convention (beyond 4×4 grid)
+    if (msg.row >= 4 || msg.col >= 4) {
+      const dir = msg.col === 0 || msg.col === 4 ? "left"
+        : msg.col === 1 || msg.col === 5 ? "right"
+        : "button";
       fireEncoder(dir);
-    } else {
+      return true;
+    }
+    // Index >= 16 (single-index beyond 4×4 grid)
+    if (msg.index >= 16 || msg.key >= 16) {
+      const idx = msg.index ?? msg.key;
+      const dir = idx === 16 ? "left" : idx === 17 ? "right" : "button";
+      fireEncoder(dir);
+      return true;
+    }
+    // Encoder step messages with dir field (e.g. "Encoder step: dir=-1, code=0x1002")
+    if (msg.msg && msg.msg.startsWith("Encoder step:")) {
+      const dir = msg.msg.includes("dir=-1") ? "left"
+        : msg.msg.includes("dir=1") ? "right"
+        : "button";
+      fireEncoder(dir);
+      return true;
+    }
+    // Encoder button messages (e.g. "Encoder btn PRESS (code=0x1003)")
+    if (msg.msg && msg.msg.includes("Encoder btn") && msg.msg.includes("PRESS")) {
+      fireEncoder("button");
+      return true;
+    }
+    return false;
+  }, [fireEncoder]);
+
+  const handleKeyState = useCallback((msg) => {
+    // Encoder via explicit encoder field or row/col/index conventions
+    if (handleEncoderEvent(msg)) return;
+    // Regular key press
+    if (msg.row != null && msg.col != null) {
       const id = `${msg.row}-${msg.col}`;
       setActiveKeysMap((prev) => {
         const n = { ...prev };
@@ -50,12 +87,12 @@ export function DeviceProvider({ children }) {
         return n;
       });
     }
-  }, [fireEncoder]);
+  }, [handleEncoderEvent]);
 
   const handleSerialMessage = useCallback((msg) => {
-    if (msg.cmd && msg.cmd !== "key_state") {
+    if (msg.cmd) {
       addLog(`[${msg.cmd.toUpperCase()}] ${JSON.stringify(msg.data || msg)}`, "raw");
-    } else if (msg.cmd !== "key_state") {
+    } else {
       addLog(JSON.stringify(msg), "raw");
     }
 
@@ -91,16 +128,23 @@ export function DeviceProvider({ children }) {
       }
       case "log": {
         addLog(msg.msg, msg.level ?? "info");
+        handleEncoderEvent(msg);
         if (msg.level === "error" || msg.level === "warn")
           addToast(`[Device] ${msg.msg}`, msg.level);
         break;
       }
-      default:
+      case "encoder": {
+        handleEncoderEvent(msg);
         break;
+      }
+      default: {
+        handleEncoderEvent(msg);
+        break;
+      }
     }
 
     domainHandler.current?.(msg);
-  }, [addLog, addToast, handleKeyState]);
+  }, [addLog, addToast, handleKeyState, handleEncoderEvent]);
 
   const handleError = useCallback((err) => {
     const msg = typeof err === "string" ? err : err.message || "Unknown error";

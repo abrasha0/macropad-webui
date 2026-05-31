@@ -1,56 +1,56 @@
 @import "tailwindcss";
 
 :root {
-  --bg-app: #0D0F0C;
+  --bg-app: #0d0f0c;
   --bg-sidebar: #111410;
-  --bg-surface: #181B15;
-  --bg-surface-2: #1F231B;
+  --bg-surface: #181b15;
+  --bg-surface-2: #1f231b;
   --bg-input: #141714;
 
-  --border: #2A2F26;
-  --border-subtle: #1E221A;
+  --border: #2a2f26;
+  --border-subtle: #1e221a;
 
-  --accent: #C8FF00;
-  --accent-dim: #8FAF00;
+  --accent: #c8ff00;
+  --accent-dim: #8faf00;
   --accent-glow: rgba(200, 255, 0, 0.15);
 
-  --text-primary: #E8EDE4;
-  --text-secondary: #7A8570;
-  --text-muted: #4A5045;
-  --text-accent: #C8FF00;
-  --text-code: #A8D080;
+  --text-primary: #e8ede4;
+  --text-secondary: #7a8570;
+  --text-muted: #4a5045;
+  --text-accent: #c8ff00;
+  --text-code: #a8d080;
 
-  --status-connected: #4ADE80;
-  --status-disconnected: #F87171;
-  --danger: #F87171;
-  --danger-bg: rgba(248, 113, 113, 0.10);
-  --warning: #FACC15;
+  --status-connected: #4ade80;
+  --status-disconnected: #f87171;
+  --danger: #f87171;
+  --danger-bg: rgba(248, 113, 113, 0.1);
+  --warning: #facc15;
 
-  --log-system: #60A5FA;
-  --log-device: #4ADE80;
-  --log-input: #F87171;
-  --log-ts: #4A5045;
+  --log-system: #60a5fa;
+  --log-device: #4ade80;
+  --log-input: #f87171;
+  --log-ts: #4a5045;
 
-  --action-keystroke: #EC4899;
-  --action-delay: #F59E0B;
-  --action-media: #60A5FA;
+  --action-keystroke: #ec4899;
+  --action-delay: #f59e0b;
+  --action-media: #60a5fa;
 
-  --shadow-key: 0 2px 8px rgba(0,0,0,0.5);
+  --shadow-key: 0 2px 8px rgba(0, 0, 0, 0.5);
   --shadow-panel: 0 0 0 1px var(--border);
   --shadow-accent: 0 0 12px var(--accent-glow);
 }
 
 @theme {
-  --font-ui: 'JetBrains Mono', 'Fira Code', monospace;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-ui: "JetBrains Mono", "Fira Code", monospace;
+  --font-mono: "JetBrains Mono", monospace;
 
-  --text-xs: 11px;
-  --text-sm: 12px;
-  --text-base: 13px;
-  --text-md: 14px;
-  --text-lg: 16px;
-  --text-xl: 20px;
-  --text-2xl: 24px;
+  --text-xs: 8px;
+  --text-sm: 10px;
+  --text-base: 11px;
+  --text-md: 12px;
+  --text-lg: 14px;
+  --text-xl: 18px;
+  --text-2xl: 20px;
 
   --fw-normal: 400;
   --fw-medium: 500;
@@ -69,27 +69,34 @@
   --space-6: 24px;
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
-html, body, #root {
+html,
+body,
+#root {
   height: 100%;
   margin: 0;
   padding: 0;
 }
 
 body {
-  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
   background: var(--bg-app);
   color: var(--text-primary);
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-input, textarea, select, button {
+input,
+textarea,
+select,
+button {
   font-family: inherit;
   font-size: inherit;
 }

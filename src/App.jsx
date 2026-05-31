@@ -19,14 +19,16 @@ import {
 import { deviceLayersToUI, macroCodeToSteps } from "./utils/keycode";
 
 const BASE = 1280;
+const SCALE_MOD = 0.9;
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState("layout");
-  const { send, isConnected, setDomainHandler } = useDevice();
+  const { setDomainHandler } = useDevice();
   const [scale, setScale] = useState(1);
 
   useEffect(() => {
-    const onResize = () => setScale(Math.max(1, innerWidth / BASE));
+    const onResize = () =>
+      setScale(Math.max(1, (innerWidth / BASE) * SCALE_MOD));
     onResize();
     addEventListener("resize", onResize);
     return () => removeEventListener("resize", onResize);
@@ -120,8 +122,6 @@ function AppContent() {
                 setLayers={setLayers}
                 activeLayer={activeLayer}
                 setActiveLayer={setActiveLayer}
-                send={send}
-                isConnected={isConnected}
               >
                 <LayoutPage
                   macros={macros}

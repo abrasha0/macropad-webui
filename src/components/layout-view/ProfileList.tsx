@@ -1,94 +1,272 @@
+import { useCallback } from "react";
 import { useLayout } from "../../hooks/useLayout";
+import { useDevice } from "../../hooks/useDevice";
 import SectionLabel from "../ui/SectionLabel";
+import { uiLayersToDevice } from "../../utils/keycode";
 
 export default function ProfileList() {
-  const { layers, activeLayer, handleLayerChange } = useLayout();
+  const {
+    layers,
+    activeLayer,
+    editingLayerName,
+    renameValue,
+    handleLayerChange,
+    startRename,
+    commitRename,
+    setRenameValue,
+    setEditingLayerName,
+  } = useLayout();
+  const { deviceLayer, isConnected, send, addLog } = useDevice();
 
-  const tags = ["Default", "Editing", "Gaming", "", ""];
+  const handleAddProfile = () => {
+    /* TODO: implement adding profiles */
+  };
+
+  const handleSaveAll = useCallback(() => {
+    const payload = uiLayersToDevice(layers);
+    addLog("Saving configuration to device...", "info");
+    send({ cmd: "set_config", data: payload });
+    addLog("Configuration sent", "success");
+  }, [layers, send, addLog]);
 
   return (
     <div
       style={{
         display: "flex",
         flexDirection: "column",
-        gap: "var(--space-1)",
+        gap: "var(--space-2)",
+        height: "100%",
       }}
     >
-      <SectionLabel>PROFILES</SectionLabel>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <SectionLabel>PROFILES</SectionLabel>
+        <button
+          onClick={handleAddProfile}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 24,
+            height: 24,
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius-sm)",
+            background: "transparent",
+            cursor: "pointer",
+            color: "var(--text-muted)",
+            fontSize: "var(--text-sm)",
+            fontFamily: "inherit",
+            lineHeight: 1,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = "var(--text-accent)";
+            e.currentTarget.style.borderColor = "var(--accent)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = "var(--text-muted)";
+            e.currentTarget.style.borderColor = "var(--border)";
+          }}
+        >
+          +
+        </button>
+      </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 2,
+          flex: 1,
+          overflowY: "auto",
+          minHeight: 0,
+        }}
+      >
         {layers.map((layer: any, i: number) => {
-          const active = activeLayer === i;
+          const isEditing = activeLayer === i;
+          const isDeviceActive = deviceLayer === i;
           return (
-            <button
+            <div
               key={i}
-              onClick={() => handleLayerChange(i)}
               style={{
                 display: "flex",
-                flexDirection: "column",
-                padding: "var(--space-2) var(--space-3)",
-                borderRadius: "var(--radius-md)",
-                border: "none",
-                background: active ? "rgba(200,255,0,0.08)" : "transparent",
-                cursor: "pointer",
-                textAlign: "left",
-                fontFamily: "inherit",
-                transition: "all 0.12s ease",
-                ...(active
-                  ? { borderLeft: "2px solid var(--accent)" }
-                  : {}),
-              }}
-              onMouseEnter={(e) => {
-                if (!active) e.currentTarget.style.background = "var(--bg-surface)";
-              }}
-              onMouseLeave={(e) => {
-                if (!active) e.currentTarget.style.background = "transparent";
+                alignItems: "stretch",
+                gap: 2,
               }}
             >
-              <span
+              <button
+                onClick={() => handleLayerChange(i)}
+                onDoubleClick={() => startRename(i, layer.name)}
                 style={{
-                  fontSize: "var(--text-sm)",
-                  fontWeight: 500,
-                  color: active ? "var(--text-accent)" : "var(--text-primary)",
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  padding: "var(--space-2) var(--space-3)",
+                  borderRadius: "var(--radius-md)",
+                  border: "none",
+                  background: isEditing
+                    ? "rgba(200,255,0,0.08)"
+                    : "transparent",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  fontFamily: "inherit",
+                  transition: "all 0.12s ease",
+                  ...(isEditing
+                    ? { borderLeft: "2px solid var(--accent)" }
+                    : {}),
+                }}
+                onMouseEnter={(e) => {
+                  if (!isEditing)
+                    e.currentTarget.style.background = "var(--bg-surface)";
+                }}
+                onMouseLeave={(e) => {
+                  if (!isEditing)
+                    e.currentTarget.style.background = "transparent";
                 }}
               >
-                {layer.name}
-              </span>
-              {tags[i] && (
-                <span
+                <div
                   style={{
-                    fontSize: "var(--text-xs)",
-                    color: "var(--text-muted)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "var(--space-2)",
                   }}
                 >
-                  ({tags[i]})
-                </span>
+                  {isDeviceActive && (
+                    <span
+                      style={{
+                        fontSize: 8,
+                        color: "var(--status-connected)",
+                      }}
+                    >
+                      ●
+                    </span>
+                  )}
+                  {editingLayerName === i ? (
+                    <input
+                      value={renameValue}
+                      onChange={(e) => setRenameValue(e.target.value)}
+                      onBlur={() => commitRename(i)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") commitRename(i);
+                        if (e.key === "Escape") setEditingLayerName(null);
+                      }}
+                      autoFocus
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
+                        background: "var(--bg-input)",
+                        border: "1px solid var(--accent)",
+                        borderRadius: "var(--radius-sm)",
+                        padding: "2px 4px",
+                        color: "var(--text-primary)",
+                        fontSize: "var(--text-sm)",
+                        fontFamily: "inherit",
+                        outline: "none",
+                        width: "100%",
+                      }}
+                    />
+                  ) : (
+                    <span
+                      style={{
+                        fontSize: "var(--text-sm)",
+                        fontWeight: 500,
+                        color: isEditing
+                          ? "var(--text-accent)"
+                          : "var(--text-primary)",
+                      }}
+                    >
+                      {layer.name}
+                    </span>
+                  )}
+                </div>
+                {isEditing && (
+                  <span
+                    style={{
+                      fontSize: "var(--text-xs)",
+                      color: "var(--text-muted)",
+                      marginTop: 2,
+                    }}
+                  >
+                    editing
+                  </span>
+                )}
+                {isDeviceActive && !isEditing && (
+                  <span
+                    style={{
+                      fontSize: "var(--text-xs)",
+                      color: "var(--text-muted)",
+                      marginTop: 2,
+                    }}
+                  >
+                    active on device
+                  </span>
+                )}
+              </button>
+
+              {isConnected && !isDeviceActive && (
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    send({ cmd: "set_layer", layer: i });
+                  }}
+                  title="Set active on device"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 16,
+                    flexShrink: 0,
+                    cursor: "pointer",
+                    color: "var(--text-muted)",
+                    fontSize: 6,
+                    lineHeight: 1,
+                    transition: "color 0.12s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = "var(--accent)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = "var(--text-muted)";
+                  }}
+                >
+                  ●
+                </div>
               )}
-            </button>
+            </div>
           );
         })}
       </div>
 
-      <button
-        disabled
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "var(--space-2)",
-          marginTop: "var(--space-1)",
-          border: "1px dashed var(--border)",
-          borderRadius: "var(--radius-md)",
-          background: "transparent",
-          cursor: "not-allowed",
-          color: "var(--text-muted)",
-          fontSize: "var(--text-sm)",
-          fontFamily: "inherit",
-          opacity: 0.6,
-        }}
-      >
-        +
-      </button>
+      {isConnected && (
+        <button
+          onClick={handleSaveAll}
+          style={{
+            width: "100%",
+            padding: "var(--space-2) var(--space-3)",
+            borderRadius: "var(--radius-md)",
+            border: "1px solid var(--border)",
+            background: "transparent",
+            cursor: "pointer",
+            color: "var(--text-muted)",
+            fontSize: "var(--text-xs)",
+            fontFamily: "inherit",
+            transition: "all 0.12s ease",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = "var(--text-accent)";
+            e.currentTarget.style.borderColor = "var(--accent)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = "var(--text-muted)";
+            e.currentTarget.style.borderColor = "var(--border)";
+          }}
+        >
+          Save all to device
+        </button>
+      )}
     </div>
   );
 }
