@@ -10,7 +10,7 @@ export default function KeyGrid({
   macros: any[];
   strings: string[];
 }) {
-  const { layers, activeLayer, activeKey, setActiveKey, activeEncoderAction, setActiveEncoderAction, encoderAnim, fireEncoder } = useLayout();
+  const { layers, activeLayer, activeKey, setActiveKey, activeEncoderAction, setActiveEncoderAction, encoderAnim, fireEncoder, isCapturing, setCapturedKey, setIsCapturing } = useLayout();
   const { activeKeysMap } = useDevice();
   const layer = layers[activeLayer];
 
@@ -46,8 +46,13 @@ export default function KeyGrid({
                 selected={selected}
                 pressed={pressed}
                 onClick={() => {
-                  setActiveKey({ rIdx, cIdx });
-                  setActiveEncoderAction(null);
+                  if (isCapturing) {
+                    setCapturedKey(cell);
+                    setIsCapturing(false);
+                  } else {
+                    setActiveKey({ rIdx, cIdx });
+                    setActiveEncoderAction(null);
+                  }
                 }}
                 macros={macros}
                 strings={strings}

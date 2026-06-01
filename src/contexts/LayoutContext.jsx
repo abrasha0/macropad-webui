@@ -9,6 +9,9 @@ export function LayoutProvider({ children, layers, setLayers, activeLayer, setAc
   const [encoderAnim, setEncoderAnim] = useState({ rotation: 0, glow: false });
   const animTimer = useRef(null);
 
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [capturedKey, setCapturedKey] = useState(null);
+
   const fireEncoder = useCallback((dir) => {
     clearTimeout(animTimer.current);
     setEncoderAnim({ rotation: dir === "left" ? -18 : dir === "right" ? 18 : 0, glow: true });
@@ -23,14 +26,25 @@ export function LayoutProvider({ children, layers, setLayers, activeLayer, setAc
           : l
       )
     );
-    setActiveKey(null);
   }, [activeLayer, setLayers]);
 
   const updateEncoder = useCallback((type, value) => {
     setLayers((prev) =>
       prev.map((l, li) => li === activeLayer ? { ...l, encoder: { ...l.encoder, [type]: value } } : l)
     );
-    setActiveEncoderAction(null);
+  }, [activeLayer, setLayers]);
+
+  const updateLabel = useCallback((row, col, value) => {
+    setLayers((prev) =>
+      prev.map((l, li) => {
+        if (li !== activeLayer) return l;
+        const labels = l.labels
+          ? l.labels.map((r) => [...r])
+          : l.keys.map((r) => r.map(() => ""));
+        labels[row][col] = value;
+        return { ...l, labels };
+      })
+    );
   }, [activeLayer, setLayers]);
 
   const handleLayerChange = useCallback((i) => {
@@ -53,9 +67,11 @@ export function LayoutProvider({ children, layers, setLayers, activeLayer, setAc
       value={{
         layers, activeLayer, activeKey, activeEncoderAction,
         editingLayerName, renameValue, encoderAnim,
+        isCapturing, setIsCapturing,
+        capturedKey, setCapturedKey,
         setActiveKey, setActiveEncoderAction,
         setEditingLayerName, setRenameValue,
-        updateKey, updateEncoder, handleLayerChange,
+        updateKey, updateEncoder, updateLabel, handleLayerChange,
         startRename, commitRename, fireEncoder,
       }}
     >
