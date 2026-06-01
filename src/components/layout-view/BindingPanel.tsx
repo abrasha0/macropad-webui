@@ -55,7 +55,12 @@ export default function BindingPanel({
   const [encAction, setEncAction] = useState("left");
   const [navExpanded, setNavExpanded] = useState(false);
   const [showKeyPicker, setShowKeyPicker] = useState(false);
-  const [pickerMods, setPickerMods] = useState({ Ctrl: false, Shift: false, Alt: false, GUI: false });
+  const [pickerMods, setPickerMods] = useState({
+    Ctrl: false,
+    Shift: false,
+    Alt: false,
+    GUI: false,
+  });
   const captureRef = useRef<HTMLDivElement>(null);
 
   const encoder = layers[activeLayer]?.encoder;
@@ -66,7 +71,8 @@ export default function BindingPanel({
       : "",
   );
   const isMacroBinding = current.startsWith("M:");
-  const isNonKeystroke = isMacroBinding || current.startsWith("T:") || /^L[0-4]$/.test(current);
+  const isNonKeystroke =
+    isMacroBinding || current.startsWith("T:") || /^L[0-4]$/.test(current);
 
   const commit = useCallback(
     (val: string) => {
@@ -85,19 +91,22 @@ export default function BindingPanel({
     commit("");
   }, [commit]);
 
-  const handleToggleMod = useCallback((name: string) => {
-    const parts = current.split("+");
-    const keyPart = parts.pop() || "";
-    if (!keyPart) return;
-    const existingMods = new Set(
-      parts.filter((p) => ["Ctrl", "Shift", "Alt", "GUI"].includes(p))
-    );
-    if (existingMods.has(name)) existingMods.delete(name);
-    else existingMods.add(name);
-    const ordered = ["Ctrl", "Shift", "Alt", "GUI"];
-    const active = ordered.filter((m) => existingMods.has(m));
-    commit(active.length > 0 ? active.join("+") + "+" + keyPart : keyPart);
-  }, [current, commit]);
+  const handleToggleMod = useCallback(
+    (name: string) => {
+      const parts = current.split("+");
+      const keyPart = parts.pop() || "";
+      if (!keyPart) return;
+      const existingMods = new Set(
+        parts.filter((p) => ["Ctrl", "Shift", "Alt", "GUI"].includes(p)),
+      );
+      if (existingMods.has(name)) existingMods.delete(name);
+      else existingMods.add(name);
+      const ordered = ["Ctrl", "Shift", "Alt", "GUI"];
+      const active = ordered.filter((m) => existingMods.has(m));
+      commit(active.length > 0 ? active.join("+") + "+" + keyPart : keyPart);
+    },
+    [current, commit],
+  );
 
   const dismiss = useCallback(() => {
     if (activeEncoderAction) setActiveEncoderAction(null);
@@ -727,7 +736,6 @@ export default function BindingPanel({
         >
           {bindingTab === "keystroke" && (
             <div style={{ maxWidth: 240 }}>
-              <SectionLabel>Primary Key</SectionLabel>
               <div
                 ref={captureRef}
                 style={{
@@ -779,7 +787,7 @@ export default function BindingPanel({
                     const p = current.split("+");
                     p.pop();
                     const m = p.filter((x) =>
-                      ["Ctrl", "Shift", "Alt", "GUI"].includes(x)
+                      ["Ctrl", "Shift", "Alt", "GUI"].includes(x),
                     );
                     setPickerMods({
                       Ctrl: m.includes("Ctrl"),
@@ -811,7 +819,10 @@ export default function BindingPanel({
                   <Keyboard size={13} />
                 </button>
                 <button
-                  onClick={(e) => { e.stopPropagation(); handleClear(); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleClear();
+                  }}
                   style={{
                     background: "transparent",
                     border: "none",
@@ -844,7 +855,7 @@ export default function BindingPanel({
                   const parts = current.split("+");
                   const keyP = parts.pop() || "";
                   const activeMod = parts.filter((p) =>
-                    ["Ctrl", "Shift", "Alt", "GUI"].includes(p)
+                    ["Ctrl", "Shift", "Alt", "GUI"].includes(p),
                   );
                   const isOn = activeMod.includes(m.mod);
                   const noKey = !keyP;
@@ -863,15 +874,9 @@ export default function BindingPanel({
                         fontFamily: "inherit",
                         cursor: disabled ? "default" : "pointer",
                         opacity: disabled ? 0.35 : 1,
-                        background: isOn
-                          ? "var(--accent)"
-                          : "var(--bg-input)",
-                        color: isOn
-                          ? "#000"
-                          : "var(--text-muted)",
-                        borderColor: isOn
-                          ? "var(--accent)"
-                          : "var(--border)",
+                        background: isOn ? "var(--accent)" : "var(--bg-input)",
+                        color: isOn ? "#000" : "var(--text-muted)",
+                        borderColor: isOn ? "var(--accent)" : "var(--border)",
                         transition: "all 0.1s ease",
                       }}
                     >
@@ -1051,7 +1056,7 @@ export default function BindingPanel({
                       onClick={() => {
                         const modOrder = ["Ctrl", "Shift", "Alt", "GUI"];
                         const active = modOrder.filter(
-                          (m) => pickerMods[m as keyof typeof pickerMods]
+                          (m) => pickerMods[m as keyof typeof pickerMods],
                         );
                         const prefix =
                           active.length > 0 ? active.join("+") + "+" : "";
