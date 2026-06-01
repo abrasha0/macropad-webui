@@ -5,10 +5,12 @@ import BindingPanel from "../components/layout-view/BindingPanel";
 export default function LayoutPage({
   macros,
   strings,
+  setStrings,
   onAddMacro,
 }: {
   macros: any[];
   strings: string[];
+  setStrings: (v: any) => void;
   onAddMacro: () => void;
 }) {
   return (
@@ -21,7 +23,7 @@ export default function LayoutPage({
       }}
     >
       <div style={{ width: 200, flexShrink: 0, minWidth: 0, overflowY: "auto" }}>
-        <ProfileList />
+        <ProfileList strings={strings} />
       </div>
       <div
         style={{
@@ -42,7 +44,7 @@ export default function LayoutPage({
           minHeight: 0,
         }}
       >
-        <BindingPanel macros={macros} strings={strings} onAddMacro={onAddMacro} />
+        <BindingPanel macros={macros} strings={strings} setStrings={setStrings} onAddMacro={onAddMacro} />
       </div>
     </div>
   );

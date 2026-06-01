@@ -126,6 +126,7 @@ function AppContent() {
                 <LayoutPage
                   macros={macros}
                   strings={strings}
+                  setStrings={setStrings}
                   onAddMacro={handleAddMacro}
                 />
               </LayoutProvider>

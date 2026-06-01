@@ -4,7 +4,11 @@ import { useDevice } from "../../hooks/useDevice";
 import SectionLabel from "../ui/SectionLabel";
 import { uiLayersToDevice } from "../../utils/keycode";
 
-export default function ProfileList() {
+export default function ProfileList({
+  strings,
+}: {
+  strings: string[];
+}) {
   const {
     layers,
     activeLayer,
@@ -23,11 +27,11 @@ export default function ProfileList() {
   };
 
   const handleSaveAll = useCallback(() => {
-    const payload = uiLayersToDevice(layers);
+    const { layers: dl, encoder: de } = uiLayersToDevice(layers);
     addLog("Saving configuration to device...", "info");
-    send({ cmd: "set_config", data: payload });
+    send({ cmd: "set_config", data: { layers: dl, encoder: de, strings } });
     addLog("Configuration sent", "success");
-  }, [layers, send, addLog]);
+  }, [layers, strings, send, addLog]);
 
   return (
     <div
