@@ -1,8 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useLayout } from "../../hooks/useLayout";
 import { useDevice } from "../../hooks/useDevice";
-import SectionLabel from "../ui/SectionLabel";
-import SegmentedControl from "../ui/SegmentedControl";
 import Badge from "../ui/Badge";
 import { Keyboard } from "lucide-react";
 import { KEY_CATEGORIES } from "../../constants/hidCodes";
@@ -19,6 +17,247 @@ const ENCODER_ACTIONS = [
   { id: "right", label: "Rotate Right" },
   { id: "button", label: "Press" },
 ];
+
+function SectionCard({
+  isActive,
+  label,
+  children,
+  onActivate,
+}: {
+  isActive: boolean;
+  label: string;
+  children: React.ReactNode;
+  onActivate: () => void;
+}) {
+  return (
+    <div
+      onClick={isActive ? undefined : onActivate}
+      style={{
+        border: "1px solid",
+        borderColor: isActive ? "var(--accent)" : "var(--border)",
+        borderRadius: "var(--radius-md)",
+        background: "var(--bg-surface)",
+        opacity: isActive ? 1 : 0.5,
+        cursor: isActive ? "default" : "pointer",
+        transition: "all 0.15s ease",
+        boxShadow: isActive ? "0 0 0 1px var(--accent)" : "none",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "var(--space-2)",
+          padding: "var(--space-2) var(--space-3)",
+        }}
+      >
+        <div
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: "50%",
+            background: isActive ? "var(--accent)" : "var(--text-muted)",
+            flexShrink: 0,
+          }}
+        />
+        <span
+          style={{
+            fontSize: "var(--text-xs)",
+            fontWeight: 600,
+            color: "var(--text-primary)",
+            textTransform: "uppercase",
+            letterSpacing: "0.04em",
+          }}
+        >
+          {label}
+        </span>
+      </div>
+      <div style={{ padding: "var(--space-3)" } as React.CSSProperties}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function MacroDropdown({
+  value,
+  onChange,
+  macros,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  macros: { name?: string }[];
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const selectedIdx = value?.startsWith("M:")
+    ? parseInt(value.slice(2), 10)
+    : -1;
+  const selectedLabel =
+    selectedIdx >= 0
+      ? macros[selectedIdx]?.name || `Macro ${selectedIdx}`
+      : null;
+
+  return (
+    <div ref={ref} style={{ position: "relative", width: "100%" }}>
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: "var(--space-1)",
+          background: "var(--bg-input)",
+          border: "1px solid var(--border)",
+          borderRadius: "var(--radius-sm)",
+          padding: "var(--space-2) var(--space-3)",
+          color: "var(--text-primary)",
+          fontSize: "var(--text-sm)",
+          fontFamily: "inherit",
+          cursor: "pointer",
+          outline: "none",
+          boxSizing: "border-box",
+          textAlign: "left",
+          transition: "border-color 0.12s ease",
+        }}
+        onFocus={(e) => (e.currentTarget.style.borderColor = "var(--accent)")}
+        onBlur={(e) => (e.currentTarget.style.borderColor = "var(--border)")}
+      >
+        <span
+          style={{
+            color: selectedLabel ? "var(--text-primary)" : "var(--text-muted)",
+          }}
+        >
+          {selectedLabel || "None"}
+        </span>
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          style={{
+            color: "var(--text-muted)",
+            flexShrink: 0,
+          }}
+        >
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+      {open && (
+        <div
+          style={{
+            position: "absolute",
+            top: "100%",
+            left: 0,
+            right: 0,
+            zIndex: 100,
+            marginTop: 4,
+            background: "var(--bg-surface)",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius-md)",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+            maxHeight: 240,
+            overflowY: "auto",
+          }}
+        >
+          <div
+            onClick={() => {
+              onChange("");
+              setOpen(false);
+            }}
+            style={{
+              padding: "var(--space-2) var(--space-3)",
+              fontSize: "var(--text-sm)",
+              cursor: "pointer",
+              color:
+                value === "" || !value?.startsWith("M:")
+                  ? "var(--accent)"
+                  : "var(--text-muted)",
+              background:
+                value === "" || !value?.startsWith("M:")
+                  ? "rgba(200,255,0,0.08)"
+                  : "transparent",
+              transition: "background 0.1s ease",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.background = "var(--bg-input)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.background =
+                value === "" || !value?.startsWith("M:")
+                  ? "rgba(200,255,0,0.08)"
+                  : "transparent")
+            }
+          >
+            None
+          </div>
+          {macros.length === 0 ? (
+            <div
+              style={{
+                padding: "var(--space-3)",
+                fontSize: "var(--text-sm)",
+                color: "var(--text-muted)",
+                textAlign: "center",
+              }}
+            >
+              No macros defined
+            </div>
+          ) : (
+            macros.map((m, i) => {
+              const val = `M:${i}`;
+              const isSelected = value === val;
+              return (
+                <div
+                  key={i}
+                  onClick={() => {
+                    onChange(val);
+                    setOpen(false);
+                  }}
+                  style={{
+                    padding: "var(--space-2) var(--space-3)",
+                    fontSize: "var(--text-sm)",
+                    cursor: "pointer",
+                    color: isSelected ? "var(--accent)" : "var(--text-primary)",
+                    background: isSelected
+                      ? "rgba(200,255,0,0.08)"
+                      : "transparent",
+                    transition: "background 0.1s ease",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.background = "var(--bg-input)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.background = isSelected
+                      ? "rgba(200,255,0,0.08)"
+                      : "transparent")
+                  }
+                >
+                  {m.name || `Macro ${i}`}
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function BindingPanel({
   macros,
@@ -85,7 +324,9 @@ export default function BindingPanel({
   }, [encAction, encoder]);
   const isMacroBinding = current.startsWith("M:");
   const isNonKeystroke =
-    isMacroBinding || current.startsWith(STR_PREFIX) || /^L[0-4]$/.test(current);
+    isMacroBinding ||
+    current.startsWith(STR_PREFIX) ||
+    /^L[0-4]$/.test(current);
 
   const commit = useCallback(
     (val: string) => {
@@ -337,165 +578,113 @@ export default function BindingPanel({
             flex: 1,
             display: "flex",
             flexDirection: "column",
-            gap: "var(--space-3)",
+            gap: "var(--space-2)",
             minHeight: 0,
+            overflowY: "auto",
           }}
         >
-          <SegmentedControl
-            options={["Key", "Macro", "String"]}
-            selected={
-              encBindingMode === "key"
-                ? "Key"
-                : encBindingMode === "macro"
-                  ? "Macro"
-                  : "String"
-            }
-            onChange={(v) =>
-              setEncBindingMode(
-                v === "Key" ? "key" : v === "Macro" ? "macro" : "string",
-              )
-            }
-          />
+          <SectionCard
+            isActive={encBindingMode === "key"}
+            label="Keystroke"
+            onActivate={() => setEncBindingMode("key")}
+          >
+            <input
+              value={encoder?.[encAction] || ""}
+              onChange={(e) => updateEncoder(encAction, e.target.value)}
+              placeholder="Type key name..."
+              style={{
+                width: "100%",
+                background: "var(--bg-input)",
+                border: "1px solid var(--border)",
+                borderRadius: "var(--radius-sm)",
+                padding: "var(--space-2) var(--space-3)",
+                color: "var(--text-primary)",
+                fontSize: "var(--text-sm)",
+                fontFamily: "inherit",
+                outline: "none",
+                boxSizing: "border-box",
+              }}
+            />
+          </SectionCard>
 
-          {encBindingMode === "key" ? (
-            <div>
-              <SectionLabel>Key</SectionLabel>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "var(--space-2)",
-                  background: "var(--bg-input)",
-                  border: "1px solid var(--accent)",
-                  borderRadius: "var(--radius-md)",
-                  padding: "var(--space-2) var(--space-3)",
-                }}
-              >
-                <input
-                  value={encoder?.[encAction] || ""}
-                  onChange={(e) =>
-                    updateEncoder(encAction, e.target.value)
-                  }
-                  placeholder="Type key name..."
-                  style={{
-                    flex: 1,
-                    background: "transparent",
-                    border: "none",
-                    outline: "none",
-                    color: "var(--text-primary)",
-                    fontSize: "var(--text-sm)",
-                    fontFamily: "inherit",
-                  }}
-                />
-              </div>
-            </div>
-          ) : encBindingMode === "macro" ? (
-            <div>
-              <SectionLabel>Assign Macro</SectionLabel>
-              <select
+          <SectionCard
+            isActive={encBindingMode === "macro"}
+            label="Macro"
+            onActivate={() => setEncBindingMode("macro")}
+          >
+            <MacroDropdown
+              value={
+                encoder?.[encAction]?.startsWith("M:") ? encoder[encAction] : ""
+              }
+              onChange={(val) => updateEncoder(encAction, val)}
+              macros={macros}
+            />
+          </SectionCard>
+
+          <SectionCard
+            isActive={encBindingMode === "string"}
+            label="String"
+            onActivate={() => setEncBindingMode("string")}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "var(--space-2)",
+                background: "var(--bg-input)",
+                border: "1px solid var(--border)",
+                borderRadius: "var(--radius-sm)",
+                padding: "var(--space-2) var(--space-3)",
+              }}
+            >
+              <input
                 value={
-                  encoder?.[encAction]?.startsWith("M:")
-                    ? encoder[encAction]
+                  (encoder?.[encAction] || "").startsWith(STR_PREFIX)
+                    ? (encoder[encAction] || "").slice(2)
                     : ""
                 }
                 onChange={(e) => {
-                  updateEncoder(encAction, e.target.value || "");
+                  const val = e.target.value;
+                  if (!val) {
+                    updateEncoder(encAction, "");
+                    return;
+                  }
+                  updateEncoder(encAction, `${STR_PREFIX}${val}`);
                 }}
+                placeholder="Type any text..."
                 style={{
-                  width: "100%",
-                  background: "var(--bg-input)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "var(--radius-md)",
-                  padding: "var(--space-2) var(--space-3)",
+                  flex: 1,
+                  background: "transparent",
+                  border: "none",
+                  outline: "none",
                   color: "var(--text-primary)",
                   fontSize: "var(--text-sm)",
                   fontFamily: "inherit",
-                  outline: "none",
                 }}
-              >
-                <option value="">None</option>
-                {macros.map((m: any, i: number) => (
-                  <option key={i} value={`M:${i}`}>
-                    {m.name || `Macro ${i}`}
-                  </option>
-                ))}
-              </select>
-              {macros.length === 0 && (
-                <div
-                  style={{
-                    marginTop: "var(--space-2)",
-                    fontSize: "var(--text-xs)",
-                    color: "var(--text-muted)",
-                    textAlign: "center",
-                  }}
-                >
-                  No macros defined — add one in Macros tab
-                </div>
-              )}
-            </div>
-          ) : (
-            <div>
-              <SectionLabel>String to type</SectionLabel>
-              <div
+              />
+              <button
+                onClick={() => updateEncoder(encAction, "")}
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "var(--space-2)",
-                  background: "var(--bg-input)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "var(--radius-md)",
-                  padding: "var(--space-2) var(--space-3)",
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "var(--text-muted)",
+                  fontSize: "var(--text-sm)",
+                  fontFamily: "inherit",
+                  padding: 0,
+                  lineHeight: 1,
                 }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.color = "var(--danger)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.color = "var(--text-muted)")
+                }
               >
-                <input
-                  value={
-                    (encoder?.[encAction] || "").startsWith(STR_PREFIX)
-                      ? (encoder[encAction] || "").slice(2)
-                      : ""
-                  }
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (!val) {
-                      updateEncoder(encAction, "");
-                      return;
-                    }
-                    updateEncoder(encAction, `${STR_PREFIX}${val}`);
-                  }}
-                  placeholder="Type any text..."
-                  style={{
-                    flex: 1,
-                    background: "transparent",
-                    border: "none",
-                    outline: "none",
-                    color: "var(--text-primary)",
-                    fontSize: "var(--text-sm)",
-                    fontFamily: "inherit",
-                  }}
-                />
-                <button
-                  onClick={() => updateEncoder(encAction, "")}
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    cursor: "pointer",
-                    color: "var(--text-muted)",
-                    fontSize: "var(--text-sm)",
-                    fontFamily: "inherit",
-                    padding: 0,
-                    lineHeight: 1,
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.color = "var(--danger)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.color = "var(--text-muted)")
-                  }
-                >
-                  ×
-                </button>
-              </div>
+                ×
+              </button>
             </div>
-          )}
+          </SectionCard>
         </div>
       </div>
     );
@@ -564,27 +753,16 @@ export default function BindingPanel({
           flex: 1,
           display: "flex",
           flexDirection: "column",
-          gap: "var(--space-3)",
+          gap: "var(--space-2)",
           minHeight: 0,
+          overflowY: "auto",
         }}
       >
-        <SegmentedControl
-          options={["Key", "Macro", "String"]}
-          selected={
-            bindingMode === "key"
-              ? "Key"
-              : bindingMode === "macro"
-                ? "Macro"
-                : "String"
-          }
-          onChange={(v) =>
-            setBindingMode(
-              v === "Key" ? "key" : v === "Macro" ? "macro" : "string",
-            )
-          }
-        />
-
-        {bindingMode === "key" ? (
+        <SectionCard
+          isActive={bindingMode === "key"}
+          label="Keystroke"
+          onActivate={() => setBindingMode("key")}
+        >
           <div
             style={{
               display: "flex",
@@ -736,107 +914,80 @@ export default function BindingPanel({
               </button>
             </div>
           </div>
-        ) : bindingMode === "macro" ? (
-          <div>
-            <SectionLabel>Assign Macro</SectionLabel>
-            <select
-              value={isMacroBinding ? current : ""}
+        </SectionCard>
+
+        <SectionCard
+          isActive={bindingMode === "macro"}
+          label="Macro"
+          onActivate={() => setBindingMode("macro")}
+        >
+          <MacroDropdown
+            value={isMacroBinding ? current : ""}
+            onChange={(val) => commit(val)}
+            macros={macros}
+          />
+        </SectionCard>
+
+        <SectionCard
+          isActive={bindingMode === "string"}
+          label="String"
+          onActivate={() => setBindingMode("string")}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "var(--space-2)",
+              background: "var(--bg-input)",
+              border: "1px solid var(--border)",
+              borderRadius: "var(--radius-sm)",
+              padding: "var(--space-2) var(--space-3)",
+            }}
+          >
+            <input
+              value={current.startsWith(STR_PREFIX) ? current.slice(2) : ""}
               onChange={(e) => {
-                commit(e.target.value || "");
+                const val = e.target.value;
+                if (!val) {
+                  commit("");
+                  return;
+                }
+                commit(`${STR_PREFIX}${val}`);
               }}
+              placeholder="Type any text..."
               style={{
-                width: "100%",
-                background: "var(--bg-input)",
-                border: "1px solid var(--border)",
-                borderRadius: "var(--radius-md)",
-                padding: "var(--space-2) var(--space-3)",
+                flex: 1,
+                background: "transparent",
+                border: "none",
+                outline: "none",
                 color: "var(--text-primary)",
                 fontSize: "var(--text-sm)",
                 fontFamily: "inherit",
-                outline: "none",
               }}
-            >
-              <option value="">None</option>
-              {macros.map((m: any, i: number) => (
-                <option key={i} value={`M:${i}`}>
-                  {m.name || `Macro ${i}`}
-                </option>
-              ))}
-            </select>
-            {macros.length === 0 && (
-              <div
-                style={{
-                  marginTop: "var(--space-2)",
-                  fontSize: "var(--text-xs)",
-                  color: "var(--text-muted)",
-                  textAlign: "center",
-                }}
-              >
-                No macros defined — add one in Macros tab
-              </div>
-            )}
-          </div>
-        ) : (
-          <div>
-            <SectionLabel>String to type</SectionLabel>
-            <div
+            />
+            <button
+              onClick={() => commit("")}
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "var(--space-2)",
-                background: "var(--bg-input)",
-                border: "1px solid var(--border)",
-                borderRadius: "var(--radius-md)",
-                padding: "var(--space-2) var(--space-3)",
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                color: "var(--text-muted)",
+                fontSize: "var(--text-sm)",
+                fontFamily: "inherit",
+                padding: 0,
+                lineHeight: 1,
               }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.color = "var(--danger)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.color = "var(--text-muted)")
+              }
             >
-              <input
-                value={
-                  current.startsWith(STR_PREFIX) ? current.slice(2) : ""
-                }
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (!val) {
-                    commit("");
-                    return;
-                  }
-                  commit(`${STR_PREFIX}${val}`);
-                }}
-                placeholder="Type any text..."
-                style={{
-                  flex: 1,
-                  background: "transparent",
-                  border: "none",
-                  outline: "none",
-                  color: "var(--text-primary)",
-                  fontSize: "var(--text-sm)",
-                  fontFamily: "inherit",
-                }}
-              />
-              <button
-                onClick={() => commit("")}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                  color: "var(--text-muted)",
-                  fontSize: "var(--text-sm)",
-                  fontFamily: "inherit",
-                  padding: 0,
-                  lineHeight: 1,
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.color = "var(--danger)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.color = "var(--text-muted)")
-                }
-              >
-                ×
-              </button>
-            </div>
+              ×
+            </button>
           </div>
-        )}
+        </SectionCard>
       </div>
 
       {/* Key picker modal */}
