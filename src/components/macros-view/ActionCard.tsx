@@ -14,21 +14,30 @@ const TYPE_STYLES: Record<string, { border: string; label: string; icon: string 
     label: "MEDIA ACTION",
     icon: "🎵",
   },
+  text: {
+    border: "var(--action-text)",
+    label: "TEXT",
+    icon: "📝",
+  },
 };
 
 export default function ActionCard({
   type,
   keystroke,
   delay,
+  text,
   onChangeKeystroke,
   onChangeDelay,
+  onChangeText,
   onRemove,
 }: {
-  type: "keystroke" | "delay" | "media";
+  type: "keystroke" | "delay" | "media" | "text";
   keystroke?: string;
   delay?: number;
+  text?: string;
   onChangeKeystroke?: (v: string) => void;
   onChangeDelay?: (v: number) => void;
+  onChangeText?: (v: string) => void;
   onRemove: () => void;
 }) {
   const style = TYPE_STYLES[type];
@@ -129,6 +138,27 @@ export default function ActionCard({
           />
           <span style={{ fontSize: "var(--text-sm)", color: "var(--text-muted)" }}>ms</span>
         </div>
+      )}
+
+      {type === "text" && (
+        <textarea
+          value={text || ""}
+          onChange={(e) => onChangeText?.(e.target.value)}
+          placeholder="Type any text to send..."
+          rows={3}
+          style={{
+            width: "100%",
+            background: "var(--bg-input)",
+            border: "1px solid var(--action-text)",
+            borderRadius: "var(--radius-sm)",
+            padding: "var(--space-2) var(--space-3)",
+            color: "var(--text-primary)",
+            fontSize: "var(--text-sm)",
+            fontFamily: "var(--font-mono)",
+            outline: "none",
+            resize: "vertical",
+          }}
+        />
       )}
     </div>
   );

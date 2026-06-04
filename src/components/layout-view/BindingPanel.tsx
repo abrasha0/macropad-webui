@@ -22,13 +22,9 @@ const ENCODER_ACTIONS = [
 
 export default function BindingPanel({
   macros,
-  strings,
-  setStrings,
   onAddMacro,
 }: {
   macros: any[];
-  strings: string[];
-  setStrings: (v: any) => void;
   onAddMacro: () => void;
 }) {
   const {
@@ -454,12 +450,7 @@ export default function BindingPanel({
                 <input
                   value={
                     (encoder?.[encAction] || "").startsWith(STR_PREFIX)
-                      ? strings[
-                          parseInt(
-                            (encoder?.[encAction] || "").slice(2),
-                            10,
-                          )
-                        ] || ""
+                      ? (encoder[encAction] || "").slice(2)
                       : ""
                   }
                   onChange={(e) => {
@@ -468,16 +459,7 @@ export default function BindingPanel({
                       updateEncoder(encAction, "");
                       return;
                     }
-                    const idx = strings.indexOf(val);
-                    if (idx >= 0) {
-                      updateEncoder(encAction, `${STR_PREFIX}${idx}`);
-                    } else {
-                      setStrings((prev: string[]) => [...prev, val]);
-                      updateEncoder(
-                        encAction,
-                        `${STR_PREFIX}${strings.length}`,
-                      );
-                    }
+                    updateEncoder(encAction, `${STR_PREFIX}${val}`);
                   }}
                   placeholder="Type any text..."
                   style={{
@@ -810,9 +792,7 @@ export default function BindingPanel({
             >
               <input
                 value={
-                  current.startsWith(STR_PREFIX)
-                    ? strings[parseInt(current.slice(2), 10)] || ""
-                    : ""
+                  current.startsWith(STR_PREFIX) ? current.slice(2) : ""
                 }
                 onChange={(e) => {
                   const val = e.target.value;
@@ -820,13 +800,7 @@ export default function BindingPanel({
                     commit("");
                     return;
                   }
-                  const idx = strings.indexOf(val);
-                  if (idx >= 0) {
-                    commit(`${STR_PREFIX}${idx}`);
-                  } else {
-                    setStrings((prev: string[]) => [...prev, val]);
-                    commit(`${STR_PREFIX}${strings.length}`);
-                  }
+                  commit(`${STR_PREFIX}${val}`);
                 }}
                 placeholder="Type any text..."
                 style={{

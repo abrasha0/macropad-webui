@@ -1,10 +1,10 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { MacroContext } from "../hooks/useMacro";
 import { useDevice } from "../hooks/useDevice";
 import { useToast } from "../hooks/useToast";
-import { stepsToDeviceCode } from "../utils/keycode";
+import { stepsToDeviceCode } from "../utils/binding";
 
-export function MacroProvider({ children, macros, setMacros, strings, setStrings }) {
+export function MacroProvider({ children, macros, setMacros, onMacroProgress }) {
   const { send, isConnected } = useDevice();
   const { addToast } = useToast();
   const [selectedMacro, setSelectedMacro] = useState(null);
@@ -33,10 +33,6 @@ export function MacroProvider({ children, macros, setMacros, strings, setStrings
     setMacros((prev) => prev.map((m, i) => i === idx ? { ...m, steps } : m));
   }, [setMacros]);
 
-  const handleAddString = useCallback((text) => setStrings((prev) => [...prev, text]), [setStrings]);
-  const handleRemoveString = useCallback((idx) => setStrings((prev) => prev.filter((_, i) => i !== idx)), [setStrings]);
-  const handleUpdateString = useCallback((idx, text) => setStrings((prev) => prev.map((s, i) => i === idx ? text : s)), [setStrings]);
-
   const handleRunMacro = useCallback(async (index) => {
     if (!isConnected) return;
     const ok = await send({ cmd: "run_macro", index });
@@ -45,24 +41,27 @@ export function MacroProvider({ children, macros, setMacros, strings, setStrings
 
   const handleSaveMacros = useCallback(async () => {
     if (!isConnected) return;
-    const ok = await send({ cmd: "set_macros", data: { macros: stepsToDeviceCode(macros), strings } });
+    const ok = await send({ cmd: "set_macros", data: { macros: stepsToDeviceCode(macros) } });
     if (!ok) addToast("Failed to save macros", "error");
     else addToast("Macros saved", "success");
-  }, [isConnected, send, macros, strings, addToast]);
+  }, [isConnected, send, macros, addToast]);
 
   const handleMacroProgress = useCallback((msg) => {
     setMacroProgress({ index: msg.index, step: msg.step, total: msg.total });
     if (msg.step >= msg.total) setTimeout(() => setMacroProgress(null), 1500);
   }, []);
 
+  useEffect(() => {
+    onMacroProgress?.(handleMacroProgress);
+  }, [onMacroProgress, handleMacroProgress]);
+
   return (
     <MacroContext.Provider
       value={{
-        macros, strings, selectedMacro, macroProgress,
+        macros, selectedMacro, macroProgress,
         setSelectedMacro,
         handleAddMacro, handleRemoveMacro,
         handleUpdateMacroName, handleUpdateMacroSteps,
-        handleAddString, handleRemoveString, handleUpdateString,
         handleRunMacro, handleSaveMacros, handleMacroProgress,
       }}
     >

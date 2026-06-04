@@ -1,21 +1,21 @@
-export const MACRO_MAX = 32;
-export const MACRO_MAX_STEPS = 64;
+export const MACRO_MAX = 16;
+export const MACRO_MAX_STEPS = 32;
 
 export const DEFAULT_LAYERS = [
   {
     name: "Numpad",
     keys: [
-      ["NumLock", "/", "*", "-"],
-      ["7", "8", "9", "+"],
-      ["4", "5", "6", "BS"],
-      ["1", "2", "3", "Ent"],
+      ["7", "8", "9", "/"],
+      ["4", "5", "6", "*"],
+      ["1", "2", "3", "-"],
+      ["0", ".", "Enter", "+"],
     ],
-    encoder: { left: "Vol Down", right: "Vol Up", button: "Mute" },
+    encoder: { left: "Vol Up", right: "Vol Down", button: "Play/Pause" },
   },
   {
-    name: "NFS: U2",
+    name: "NFS Underground 2",
     keys: [
-      ["Esc", "", "", "Ent"],
+      ["Esc", "", "", "Enter"],
       ["Shift", "Up", "Ctrl", "C"],
       ["Left", "Down", "Right", "Space"],
       ["N", "", "", "M"],
@@ -45,4 +45,3 @@ export const DEFAULT_LAYERS = [
 ];
 
 export const DEFAULT_MACROS = [];
-export const DEFAULT_STRINGS = [];

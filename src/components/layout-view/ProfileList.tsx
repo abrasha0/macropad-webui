@@ -2,12 +2,12 @@ import { useCallback } from "react";
 import { useLayout } from "../../hooks/useLayout";
 import { useDevice } from "../../hooks/useDevice";
 import SectionLabel from "../ui/SectionLabel";
-import { uiLayersToDevice } from "../../utils/keycode";
+import { uiLayersToDevice } from "../../utils/binding";
 
 export default function ProfileList({
-  strings,
+  macros,
 }: {
-  strings: string[];
+  macros: any[];
 }) {
   const {
     layers,
@@ -26,12 +26,13 @@ export default function ProfileList({
     /* TODO: implement adding profiles */
   };
 
-  const handleSaveAll = useCallback(() => {
+  const handleSaveAll = useCallback(async () => {
     const { layers: dl, encoder: de } = uiLayersToDevice(layers);
     addLog("Saving configuration to device...", "info");
-    send({ cmd: "set_config", data: { layers: dl, encoder: de, strings } });
-    addLog("Configuration sent", "success");
-  }, [layers, strings, send, addLog]);
+    const ok = await send({ cmd: "set_config", data: { layers: dl, encoder: de, macros } });
+    if (!ok) addLog("Failed to save configuration", "error");
+    else addLog("Configuration saved", "success");
+  }, [layers, macros, send, addLog]);
 
   return (
     <div

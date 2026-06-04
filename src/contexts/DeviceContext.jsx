@@ -15,6 +15,8 @@ export function DeviceProvider({ children }) {
 
   const domainHandler = useRef(null);
   const setDomainHandler = useCallback((fn) => { domainHandler.current = fn; }, []);
+  const macroProgressHandler = useRef(null);
+  const setMacroProgressHandler = useCallback((fn) => { macroProgressHandler.current = fn; }, []);
 
   const addLog = useCallback((message, level = "info") => {
     const now = new Date();
@@ -133,6 +135,10 @@ export function DeviceProvider({ children }) {
           addToast(`[Device] ${msg.msg}`, msg.level);
         break;
       }
+      case "macro_progress": {
+        macroProgressHandler.current?.(msg);
+        break;
+      }
       case "encoder": {
         handleEncoderEvent(msg);
         break;
@@ -194,6 +200,7 @@ export function DeviceProvider({ children }) {
         setConfigLoaded,
         setDeviceLayer,
         setDomainHandler,
+        setMacroProgressHandler,
         deviceInfo,
         setDeviceInfo,
         activeKeysMap,

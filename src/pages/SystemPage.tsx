@@ -7,15 +7,11 @@ export default function SystemPage({
   setLayers,
   macros,
   setMacros,
-  strings,
-  setStrings,
 }: {
   layers: any[];
   setLayers: (v: any) => void;
   macros: any[];
   setMacros: (v: any) => void;
-  strings: string[];
-  setStrings: (v: any) => void;
 }) {
   return (
     <div>
@@ -47,8 +43,6 @@ export default function SystemPage({
           setLayers={setLayers}
           macros={macros}
           setMacros={setMacros}
-          strings={strings}
-          setStrings={setStrings}
         />
       </div>
     </div>

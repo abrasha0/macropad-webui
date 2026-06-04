@@ -1,22 +1,18 @@
 import { useDevice } from "../../hooks/useDevice";
 import { useToast } from "../../hooks/useToast";
-import { DEFAULT_LAYERS, DEFAULT_MACROS, DEFAULT_STRINGS } from "../../constants/defaults";
-import { uiLayersToDevice, stepsToDeviceCode, macroCodeToSteps, deviceLayersToUI } from "../../utils/keycode";
+import { DEFAULT_LAYERS, DEFAULT_MACROS } from "../../constants/defaults";
+import { uiLayersToDevice, stepsToDeviceCode, macroCodeToSteps, deviceLayersToUI } from "../../utils/binding";
 
 export default function ManagementCard({
   layers,
   setLayers,
   macros,
   setMacros,
-  strings,
-  setStrings,
 }: {
   layers: any[];
   setLayers: (v: any) => void;
   macros: any[];
   setMacros: (v: any) => void;
-  strings: string[];
-  setStrings: (v: any) => void;
 }) {
   const { send, isConnected } = useDevice();
   const { addToast } = useToast();
@@ -30,7 +26,6 @@ export default function ManagementCard({
         layers: dl,
         encoder: de,
         macros: stepsToDeviceCode(macros),
-        strings,
       },
     });
     if (!ok) addToast("Failed to save configuration", "error");
@@ -43,7 +38,6 @@ export default function ManagementCard({
       layers: dl,
       encoder: de,
       macros: stepsToDeviceCode(macros),
-      strings,
       _layerNames: layers.map((l: any) => l.name),
       _version: 2,
     };
@@ -80,9 +74,7 @@ export default function ManagementCard({
           const newLayers = deviceLayersToUI(
             data.layers,
             data.encoder,
-            layers,
-            data.macros || [],
-            data.strings || []
+            layers
           );
           newLayers.forEach((l: any, i: number) => {
             l.name = names[i] || `Layer ${i}`;
@@ -90,7 +82,6 @@ export default function ManagementCard({
           setLayers(newLayers);
           if (Array.isArray(data.macros))
             setMacros(macroCodeToSteps(data.macros));
-          if (Array.isArray(data.strings)) setStrings(data.strings);
           addToast("Configuration imported", "success");
         } catch (err: any) {
           addToast(`Error parsing file: ${err.message}`, "error");
@@ -104,7 +95,6 @@ export default function ManagementCard({
   const handleReset = () => {
     setLayers(DEFAULT_LAYERS);
     setMacros(DEFAULT_MACROS);
-    setStrings(DEFAULT_STRINGS);
     addToast("Reset to defaults", "info");
   };
 

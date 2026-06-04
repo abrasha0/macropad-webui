@@ -192,18 +192,24 @@ export default function MacroEditor() {
         )}
 
         {steps.map((step: any, i: number) => {
-          const isDelay = step.keycode === 0;
+          const isText = step.text !== undefined && step.text !== "";
+          const isDelay = !isText && step.keycode === 0;
+          const cardType = isText ? "text" : isDelay ? "delay" : "keystroke";
           return (
             <ActionCard
               key={i}
-              type={isDelay ? "delay" : "keystroke"}
-              keystroke={isDelay ? undefined : String(step.keycode)}
+              type={cardType}
+              keystroke={isText || isDelay ? undefined : String(step.keycode)}
               delay={isDelay ? step.delay : undefined}
+              text={isText ? step.text : undefined}
               onChangeKeystroke={(v) =>
                 updateStep(i, { ...step, keycode: v || 0 })
               }
               onChangeDelay={(v) =>
                 updateStep(i, { ...step, delay: v })
+              }
+              onChangeText={(v) =>
+                updateStep(i, { ...step, text: v })
               }
               onRemove={() => removeStep(i)}
             />

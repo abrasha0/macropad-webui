@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { ToastProvider } from "./contexts/ToastContext";
 import { DeviceProvider } from "./contexts/DeviceContext";
 import { useDevice } from "./hooks/useDevice";
@@ -14,16 +14,15 @@ import ProgressBar from "./components/shared/ProgressBar";
 import {
   DEFAULT_LAYERS,
   DEFAULT_MACROS,
-  DEFAULT_STRINGS,
 } from "./constants/defaults";
-import { deviceLayersToUI, macroCodeToSteps } from "./utils/keycode";
+import { deviceLayersToUI, macroCodeToSteps } from "./utils/binding";
 
 const BASE = 1280;
 const SCALE_MOD = 0.9;
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState("layout");
-  const { setDomainHandler } = useDevice();
+  const { setDomainHandler, setMacroProgressHandler } = useDevice();
   const [scale, setScale] = useState(1);
 
   useEffect(() => {
@@ -36,41 +35,45 @@ function AppContent() {
 
   const [layers, setLayers] = useState(DEFAULT_LAYERS);
   const [macros, setMacros] = useState(DEFAULT_MACROS);
-  const [strings, setStrings] = useState(DEFAULT_STRINGS);
   const [activeLayer, setActiveLayer] = useState(0);
 
-  const handleSerialMessage = useCallback(
-    (msg) => {
-      switch (msg.cmd) {
-        case "config": {
-          const rawLayers = msg.data?.layers;
-          const rawEncoder = msg.data?.encoder;
-          const rawMacros = msg.data?.macros;
-          const rawStrings = msg.data?.strings;
-          if (Array.isArray(rawLayers) && rawLayers.length > 0) {
-            setLayers((prev) =>
-              deviceLayersToUI(rawLayers, rawEncoder, prev, macros, strings),
-            );
-          }
-          if (Array.isArray(rawMacros)) setMacros(macroCodeToSteps(rawMacros));
-          if (Array.isArray(rawStrings)) setStrings(rawStrings);
-          break;
+  // Refs to avoid stale closure in handleSerialMessage
+  const macrosRef = useRef(macros);
+  useEffect(() => {
+    macrosRef.current = macros;
+  });
+
+  const handleSerialMessage = useCallback((msg) => {
+    switch (msg.cmd) {
+      case "config": {
+        const rawLayers = msg.data?.layers;
+        const rawEncoder = msg.data?.encoder;
+        const rawMacros = msg.data?.macros;
+        if (Array.isArray(rawLayers) && rawLayers.length > 0) {
+          setLayers((prev) =>
+            deviceLayersToUI(rawLayers, rawEncoder, prev, macrosRef.current),
+          );
         }
-        case "macros": {
-          if (Array.isArray(msg.data)) setMacros(macroCodeToSteps(msg.data));
-          if (Array.isArray(msg.strings)) setStrings(msg.strings);
-          break;
-        }
-        default:
-          break;
+        if (Array.isArray(rawMacros)) setMacros(macroCodeToSteps(rawMacros));
+        break;
       }
-    },
-    [macros, strings],
-  );
+      case "macros": {
+        if (Array.isArray(msg.data)) setMacros(macroCodeToSteps(msg.data));
+        break;
+      }
+      default:
+        break;
+    }
+  }, []);
+
+  const macroProgressRef = useRef(null);
 
   useEffect(() => {
     setDomainHandler(handleSerialMessage);
-  }, [handleSerialMessage, setDomainHandler]);
+    setMacroProgressHandler((msg) => macroProgressRef.current?.(msg));
+  }, [handleSerialMessage, setDomainHandler, setMacroProgressHandler]);
+
+  const setMacroProgressFn = useCallback((fn) => { macroProgressRef.current = fn; }, []);
 
   const handleAddMacro = useCallback(() => {
     const idx = macros.length;
@@ -125,8 +128,6 @@ function AppContent() {
               >
                 <LayoutPage
                   macros={macros}
-                  strings={strings}
-                  setStrings={setStrings}
                   onAddMacro={handleAddMacro}
                 />
               </LayoutProvider>
@@ -135,8 +136,7 @@ function AppContent() {
               <MacroProvider
                 macros={macros}
                 setMacros={setMacros}
-                strings={strings}
-                setStrings={setStrings}
+                onMacroProgress={setMacroProgressFn}
               >
                 <ProgressBar />
                 <MacrosPage />
@@ -148,8 +148,6 @@ function AppContent() {
                 setLayers={setLayers}
                 macros={macros}
                 setMacros={setMacros}
-                strings={strings}
-                setStrings={setStrings}
               />
             )}
           </main>

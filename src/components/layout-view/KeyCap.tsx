@@ -1,4 +1,4 @@
-import { getKeyDisplayString } from "../../utils/keycode";
+import { getKeyDisplayString } from "../../utils/binding";
 
 export default function KeyCap({
   label: rawLabel,
@@ -6,16 +6,14 @@ export default function KeyCap({
   pressed,
   onClick,
   macros,
-  strings,
 }: {
   label: string;
   selected: boolean;
   pressed: boolean;
   onClick: () => void;
   macros: any[];
-  strings: string[];
 }) {
-  const display = getKeyDisplayString(rawLabel, macros, strings);
+  const display = getKeyDisplayString(rawLabel, macros);
 
   return (
     <button

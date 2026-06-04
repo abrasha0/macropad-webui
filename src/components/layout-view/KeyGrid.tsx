@@ -5,10 +5,8 @@ import Encoder from "./Encoder";
 
 export default function KeyGrid({
   macros,
-  strings,
 }: {
   macros: any[];
-  strings: string[];
 }) {
   const { layers, activeLayer, activeKey, setActiveKey, activeEncoderAction, setActiveEncoderAction, encoderAnim, fireEncoder, isCapturing, setCapturedKey, setIsCapturing } = useLayout();
   const { activeKeysMap } = useDevice();
@@ -55,7 +53,6 @@ export default function KeyGrid({
                   }
                 }}
                 macros={macros}
-                strings={strings}
               />
             );
           })
