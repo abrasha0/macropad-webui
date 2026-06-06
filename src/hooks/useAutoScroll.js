@@ -3,6 +3,7 @@ import { useRef, useCallback, useState, useEffect } from "react";
 export function useAutoScroll(deps = []) {
   const containerRef = useRef(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
+  const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
 
   const checkAtBottom = useCallback(() => {
     const el = containerRef.current;
@@ -14,6 +15,7 @@ export function useAutoScroll(deps = []) {
   const handleScroll = useCallback(() => {
     const atBottom = checkAtBottom();
     setIsAtBottom(atBottom);
+    setAutoScrollEnabled(atBottom);
   }, [checkAtBottom]);
 
   const scrollToBottom = useCallback(() => {
@@ -23,10 +25,10 @@ export function useAutoScroll(deps = []) {
   }, []);
 
   useEffect(() => {
-    if (isAtBottom) {
+    if (autoScrollEnabled) {
       scrollToBottom();
     }
   }, deps); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return { containerRef, isAtBottom, handleScroll, scrollToBottom };
+  return { containerRef, isAtBottom, handleScroll, scrollToBottom, autoScrollEnabled, setAutoScrollEnabled };
 }

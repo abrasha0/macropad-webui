@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useState, useMemo } from "react";
 import { useDevice } from "../../hooks/useDevice";
 import { useAutoScroll } from "../../hooks/useAutoScroll";
 
@@ -27,6 +27,8 @@ const LEVEL_COLORS: Record<string, string> = {
 };
 
 const LOG_FONT_SIZE = 8;
+const LOG_LEVELS = ["raw", "info", "warn", "error", "success"] as const;
+type LogLevel = (typeof LOG_LEVELS)[number];
 
 function LogLine({
   log,
@@ -67,13 +69,47 @@ function LogLine({
 
 export default function SerialMonitor() {
   const { serialLogs, clearLogs, isConnected } = useDevice();
-  const { containerRef, isAtBottom, handleScroll, scrollToBottom } =
-    useAutoScroll([serialLogs.length]);
+  const {
+    containerRef,
+    handleScroll,
+    scrollToBottom,
+    autoScrollEnabled,
+    setAutoScrollEnabled,
+  } = useAutoScroll([serialLogs.length]);
+
+  const [logTypeFilter, setLogTypeFilter] = useState<
+    "all" | "raw" | "formatted"
+  >("formatted");
+  const [levelFilters, setLevelFilters] = useState<Set<LogLevel>>(
+    new Set(LOG_LEVELS)
+  );
+
+  const filteredLogs = useMemo(
+    () =>
+      serialLogs.filter((log) => {
+        if (logTypeFilter === "raw" && log.level !== "raw") return false;
+        if (logTypeFilter === "formatted" && log.level === "raw") return false;
+        if (log.level && !LOG_LEVELS.includes(log.level as LogLevel))
+          return true;
+        if (!levelFilters.has(log.level as LogLevel)) return false;
+        return true;
+      }),
+    [serialLogs, logTypeFilter, levelFilters]
+  );
+
+  const toggleLevel = useCallback((level: LogLevel) => {
+    setLevelFilters((prev) => {
+      const next = new Set(prev);
+      if (next.has(level)) next.delete(level);
+      else next.add(level);
+      return next;
+    });
+  }, []);
 
   const copyLogs = useCallback(() => {
-    const text = serialLogs.map((l) => `${l.time} ${l.message}`).join("\n");
+    const text = filteredLogs.map((l) => `${l.time} ${l.message}`).join("\n");
     navigator.clipboard.writeText(text);
-  }, [serialLogs]);
+  }, [filteredLogs]);
 
   return (
     <div
@@ -90,9 +126,10 @@ export default function SerialMonitor() {
         style={{
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between",
+          gap: "var(--space-1)",
           padding: "var(--space-1) var(--space-3)",
           borderBottom: "1px solid var(--border-subtle)",
+          overflow: "hidden",
         }}
       >
         <div
@@ -100,6 +137,8 @@ export default function SerialMonitor() {
             display: "flex",
             alignItems: "center",
             gap: "var(--space-2)",
+            flexShrink: 0,
+            marginRight: "var(--space-3)",
           }}
         >
           <span style={{ fontSize: 10, color: "var(--text-muted)" }}>⊡</span>
@@ -127,7 +166,131 @@ export default function SerialMonitor() {
             {isConnected ? "COM3: 115200" : "Disconnected"}
           </span>
         </div>
-        <div style={{ display: "flex", gap: "var(--space-2)" }}>
+
+        <span style={{ fontSize: 9, color: "var(--border)", flexShrink: 0 }}>|</span>
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "var(--space-2)",
+            flex: 1,
+            minWidth: 0,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              background: "var(--bg-input)",
+              border: "1px solid var(--border)",
+              borderRadius: "var(--radius-sm)",
+              overflow: "hidden",
+              flexShrink: 0,
+            }}
+          >
+            {(["all", "raw", "formatted"] as const).map((opt) => (
+              <button
+                key={opt}
+                onClick={() => setLogTypeFilter(opt)}
+                style={{
+                  padding: "2px 4px",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: 8,
+                  fontFamily: "inherit",
+                  background:
+                    logTypeFilter === opt
+                      ? "var(--bg-surface-2)"
+                      : "transparent",
+                  color:
+                    logTypeFilter === opt
+                      ? "var(--text-primary)"
+                      : "var(--text-muted)",
+                }}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+
+          <span style={{ fontSize: 9, color: "var(--border)", flexShrink: 0 }}>
+            |
+          </span>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "var(--space-1)",
+              flexWrap: "nowrap",
+              overflow: "hidden",
+            }}
+          >
+            {LOG_LEVELS.map((level) => {
+              const active = levelFilters.has(level);
+              return (
+                <button
+                  key={level}
+                  onClick={() => toggleLevel(level)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 2,
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: "2px 3px",
+                    borderRadius: "var(--radius-sm)",
+                    fontSize: 8,
+                    fontFamily: "inherit",
+                    color: active
+                      ? LEVEL_COLORS[level] || "var(--text-primary)"
+                      : "var(--text-muted)",
+                    opacity: active ? 1 : 0.45,
+                    flexShrink: 0,
+                  }}
+                >
+                  <span style={{ fontSize: 6, lineHeight: 1 }}>●</span>
+                  {level}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "var(--space-1)",
+            flexShrink: 0,
+          }}
+        >
+          <button
+            onClick={() => {
+              if (autoScrollEnabled) {
+                setAutoScrollEnabled(false);
+              } else {
+                setAutoScrollEnabled(true);
+                scrollToBottom();
+              }
+            }}
+            title={autoScrollEnabled ? "Autoscroll ON" : "Autoscroll OFF"}
+            style={{
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              fontSize: 9,
+              fontFamily: "inherit",
+              color: autoScrollEnabled
+                ? "var(--accent)"
+                : "var(--text-muted)",
+              padding: "2px 4px",
+              borderRadius: "var(--radius-sm)",
+            }}
+          >
+            ▼
+          </button>
           <button
             onClick={copyLogs}
             style={{
@@ -181,7 +344,7 @@ export default function SerialMonitor() {
           padding: "var(--space-1) var(--space-3)",
         }}
       >
-        {serialLogs.map((log, i) => (
+        {filteredLogs.map((log, i) => (
           <LogLine key={i} log={log} />
         ))}
       </div>
